@@ -51,6 +51,15 @@ const deployScript = async (): Promise<void> => {
       owner: deployer.address,
     },
   });
+
+  // Deploy HabitTracker contract with treasury address (using deployer as treasury)
+  await deployContract({
+    contract: "HabitTracker",
+    contractName: "HabitTracker",
+    constructorArgs: {
+      treasury_addr: deployer.address, // Using deployer as treasury for now
+    },
+  });
 };
 
 const main = async (): Promise<void> => {
