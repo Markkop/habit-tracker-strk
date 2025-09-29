@@ -41,14 +41,18 @@ pub trait IHabitTracker<TContractState> {
     fn prepare_day(ref self: TContractState, epoch_id: u64);
     fn settle(ref self: TContractState, user: ContractAddress, epoch_id: u64, habit_id: u32);
     fn settle_all(ref self: TContractState, user: ContractAddress, epoch_id: u64, max_count: u32);
-    fn force_settle_all(ref self: TContractState, user: ContractAddress, epoch_id: u64, max_count: u32);
+    fn force_settle_all(
+        ref self: TContractState, user: ContractAddress, epoch_id: u64, max_count: u32,
+    );
     fn claim(ref self: TContractState, amount: u256);
     fn redeposit_from_claimable(ref self: TContractState, amount: u256);
 
     // View functions
     fn get_user_state(self: @TContractState, user: ContractAddress) -> UserState;
     fn get_habits(self: @TContractState, user: ContractAddress) -> Array<Habit>;
-    fn get_daily_status(self: @TContractState, user: ContractAddress, epoch_id: u64, habit_id: u32) -> DailyStatus;
+    fn get_daily_status(
+        self: @TContractState, user: ContractAddress, epoch_id: u64, habit_id: u32,
+    ) -> DailyStatus;
     fn epoch_now(self: @TContractState) -> u64;
     fn treasury_address(self: @TContractState) -> ContractAddress;
     fn stake_per_day(self: @TContractState) -> u256;
@@ -56,19 +60,18 @@ pub trait IHabitTracker<TContractState> {
 
 #[starknet::contract]
 pub mod HabitTracker {
-    use starknet::storage::{
-        Map, StorageMapReadAccess, StorageMapWriteAccess,
-    };
-    use starknet::{ContractAddress, get_caller_address, get_contract_address, get_block_timestamp};
     use openzeppelin_token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use super::{IHabitTracker, Habit, DailyStatus, UserState, PrepareResult};
+    use starknet::storage::{Map, StorageMapReadAccess, StorageMapWriteAccess};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
+    use super::{DailyStatus, Habit, IHabitTracker, UserState};
 
     // Constants
     pub const STAKE_PER_DAY: u256 = 10_000_000_000_000_000_000; // 10 STRK with 18 decimals
     pub const SECONDS_PER_DAY: u64 = 86400;
 
     // STRK token contract address on Starknet
-    pub const STRK_CONTRACT: felt252 = 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d;
+    pub const STRK_CONTRACT: felt252 =
+        0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d;
 
     #[event]
     #[derive(Drop, starknet::Event)]
@@ -189,7 +192,7 @@ pub mod HabitTracker {
 
             let caller = get_caller_address();
             let strk_dispatcher = IERC20Dispatcher {
-                contract_address: STRK_CONTRACT.try_into().unwrap()
+                contract_address: STRK_CONTRACT.try_into().unwrap(),
             };
 
             let success = strk_dispatcher.transfer_from(caller, get_contract_address(), amount);
@@ -214,7 +217,7 @@ pub mod HabitTracker {
             self.user_deposit_balance.write(caller, deposit_balance - amount);
 
             let strk_dispatcher = IERC20Dispatcher {
-                contract_address: STRK_CONTRACT.try_into().unwrap()
+                contract_address: STRK_CONTRACT.try_into().unwrap(),
             };
             let success = strk_dispatcher.transfer(caller, amount);
             assert(success, 'STRK transfer failed');
@@ -233,11 +236,7 @@ pub mod HabitTracker {
             self.user_habit_counter.write(caller, next_id);
 
             let habit = Habit {
-                id: next_id,
-                owner: caller,
-                text,
-                created_at_epoch: current_epoch,
-                archived: false,
+                id: next_id, owner: caller, text, created_at_epoch: current_epoch, archived: false,
             };
 
             self.habits.write((caller, next_id), habit);
@@ -291,9 +290,7 @@ pub mod HabitTracker {
 
             if !status.checked {
                 let mut new_status = DailyStatus {
-                    funded: status.funded,
-                    checked: true,
-                    settled: status.settled,
+                    funded: status.funded, checked: true, settled: status.settled,
                 };
                 self.daily_status.write((caller, epoch_id, habit_id), new_status);
                 self.emit(Checked { user: caller, habit_id, epoch_id });
@@ -312,7 +309,6 @@ pub mod HabitTracker {
             //     return;
             // }
 
-            let active_count = self.user_active_habit_count.read(caller);
             let mut deposit_balance = self.user_deposit_balance.read(caller);
             let mut blocked_balance = self.user_blocked_balance.read(caller);
 
@@ -321,14 +317,14 @@ pub mod HabitTracker {
 
             let mut habit_id = 1;
             let max_habit_id = self.user_habit_counter.read(caller);
-            
+
             while habit_id <= max_habit_id {
                 let habit = self.habits.read((caller, habit_id));
-                
+
                 // Check if this is a valid, non-archived habit
                 if habit.id == habit_id && !habit.archived {
                     let status = self.daily_status.read((caller, epoch_id, habit_id));
-                    
+
                     // Only fund if not already funded for this day
                     if !status.funded {
                         let available_balance = deposit_balance - blocked_balance;
@@ -338,9 +334,7 @@ pub mod HabitTracker {
                             blocked_balance += STAKE_PER_DAY;
 
                             let new_status = DailyStatus {
-                                funded: true,
-                                checked: status.checked,
-                                settled: status.settled,
+                                funded: true, checked: status.checked, settled: status.settled,
                             };
                             self.daily_status.write((caller, epoch_id, habit_id), new_status);
 
@@ -351,17 +345,12 @@ pub mod HabitTracker {
                     }
                 }
                 habit_id += 1;
-            };
+            }
 
             self.user_blocked_balance.write(caller, blocked_balance);
             self.day_prepared.write((caller, epoch_id), true);
 
-            self.emit(Prepared {
-                user: caller,
-                epoch_id,
-                funded_count,
-                insufficient_count
-            });
+            self.emit(Prepared { user: caller, epoch_id, funded_count, insufficient_count });
         }
 
         fn settle(ref self: ContractState, user: ContractAddress, epoch_id: u64, habit_id: u32) {
@@ -376,9 +365,7 @@ pub mod HabitTracker {
 
             if status.funded && !status.settled {
                 let new_status = DailyStatus {
-                    funded: status.funded,
-                    checked: status.checked,
-                    settled: true,
+                    funded: status.funded, checked: status.checked, settled: true,
                 };
                 self.daily_status.write((user, epoch_id, habit_id), new_status);
 
@@ -397,32 +384,25 @@ pub mod HabitTracker {
                     claimable_balance += STAKE_PER_DAY;
                     self.user_claimable_balance.write(user, claimable_balance);
 
-                    self.emit(SettledSuccess {
-                        user,
-                        habit_id,
-                        epoch_id,
-                        amount: STAKE_PER_DAY
-                    });
+                    self.emit(SettledSuccess { user, habit_id, epoch_id, amount: STAKE_PER_DAY });
                 } else {
                     // Failure: Send funds to treasury
 
                     let strk_dispatcher = IERC20Dispatcher {
-                        contract_address: STRK_CONTRACT.try_into().unwrap()
+                        contract_address: STRK_CONTRACT.try_into().unwrap(),
                     };
-                    let success = strk_dispatcher.transfer(self.treasury_address.read(()), STAKE_PER_DAY);
+                    let success = strk_dispatcher
+                        .transfer(self.treasury_address.read(()), STAKE_PER_DAY);
                     assert(success, 'Treasury transfer failed');
 
-                    self.emit(SettledFail {
-                        user,
-                        habit_id,
-                        epoch_id,
-                        amount: STAKE_PER_DAY
-                    });
+                    self.emit(SettledFail { user, habit_id, epoch_id, amount: STAKE_PER_DAY });
                 }
             }
         }
 
-        fn settle_all(ref self: ContractState, user: ContractAddress, epoch_id: u64, max_count: u32) {
+        fn settle_all(
+            ref self: ContractState, user: ContractAddress, epoch_id: u64, max_count: u32,
+        ) {
             let current_epoch = self.epoch_now();
             assert(epoch_id < current_epoch, 'Can only settle past days');
             assert(max_count > 0 && max_count <= 50, 'Invalid max_count');
@@ -443,7 +423,9 @@ pub mod HabitTracker {
             };
         }
 
-        fn force_settle_all(ref self: ContractState, user: ContractAddress, epoch_id: u64, max_count: u32) {
+        fn force_settle_all(
+            ref self: ContractState, user: ContractAddress, epoch_id: u64, max_count: u32,
+        ) {
             // WARNING: This function bypasses the time check for testing purposes
             // It allows settling habits for the current day without waiting for midnight UTC
             // After settling, it automatically resets all daily statuses to allow repeated testing
@@ -456,13 +438,11 @@ pub mod HabitTracker {
                 let habit = self.habits.read((user, habit_id));
                 if habit.id == habit_id && !habit.archived {
                     let mut status = self.daily_status.read((user, epoch_id, habit_id));
-                    
+
                     if status.funded && !status.settled {
                         // Mark as settled
                         let new_status = DailyStatus {
-                            funded: status.funded,
-                            checked: status.checked,
-                            settled: true,
+                            funded: status.funded, checked: status.checked, settled: true,
                         };
                         self.daily_status.write((user, epoch_id, habit_id), new_status);
 
@@ -483,45 +463,40 @@ pub mod HabitTracker {
                             claimable_balance += STAKE_PER_DAY;
                             self.user_claimable_balance.write(user, claimable_balance);
 
-                            self.emit(SettledSuccess {
-                                user,
-                                habit_id,
-                                epoch_id,
-                                amount: STAKE_PER_DAY
-                            });
+                            self
+                                .emit(
+                                    SettledSuccess {
+                                        user, habit_id, epoch_id, amount: STAKE_PER_DAY,
+                                    },
+                                );
                         } else {
                             // Failure: Send funds to treasury
 
                             let strk_dispatcher = IERC20Dispatcher {
-                                contract_address: STRK_CONTRACT.try_into().unwrap()
+                                contract_address: STRK_CONTRACT.try_into().unwrap(),
                             };
-                            let success = strk_dispatcher.transfer(self.treasury_address.read(()), STAKE_PER_DAY);
+                            let success = strk_dispatcher
+                                .transfer(self.treasury_address.read(()), STAKE_PER_DAY);
                             assert(success, 'Treasury transfer failed');
 
-                            self.emit(SettledFail {
-                                user,
-                                habit_id,
-                                epoch_id,
-                                amount: STAKE_PER_DAY
-                            });
+                            self
+                                .emit(
+                                    SettledFail { user, habit_id, epoch_id, amount: STAKE_PER_DAY },
+                                );
                         }
                         processed += 1;
                     }
                 }
                 habit_id += 1;
-            };
+            }
 
             // Auto-reset: Clear all daily statuses for this epoch to allow repeated testing
             habit_id = 1;
             while habit_id <= self.user_habit_counter.read(user) {
-                let empty_status = DailyStatus {
-                    funded: false,
-                    checked: false,
-                    settled: false,
-                };
+                let empty_status = DailyStatus { funded: false, checked: false, settled: false };
                 self.daily_status.write((user, epoch_id, habit_id), empty_status);
                 habit_id += 1;
-            };
+            }
 
             // Clear the day_prepared flag for this epoch
             self.day_prepared.write((user, epoch_id), false);
@@ -537,7 +512,7 @@ pub mod HabitTracker {
             self.user_claimable_balance.write(caller, claimable_balance - amount);
 
             let strk_dispatcher = IERC20Dispatcher {
-                contract_address: STRK_CONTRACT.try_into().unwrap()
+                contract_address: STRK_CONTRACT.try_into().unwrap(),
             };
             let success = strk_dispatcher.transfer(caller, amount);
             assert(success, 'STRK transfer failed');
@@ -579,12 +554,14 @@ pub mod HabitTracker {
                     habits.append(habit);
                 }
                 habit_id += 1;
-            };
+            }
 
             habits
         }
 
-        fn get_daily_status(self: @ContractState, user: ContractAddress, epoch_id: u64, habit_id: u32) -> DailyStatus {
+        fn get_daily_status(
+            self: @ContractState, user: ContractAddress, epoch_id: u64, habit_id: u32,
+        ) -> DailyStatus {
             self.daily_status.read((user, epoch_id, habit_id))
         }
 

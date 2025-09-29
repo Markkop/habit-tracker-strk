@@ -7,7 +7,7 @@ const deployedContracts = {
   devnet: {
     YourContract: {
       address:
-        "0x6dccaa5078d7ae66f6aa6c7bb61866e336a9bee5f56c67c0ccb52ce3f100c7e",
+        "0x712caac1b70f1e96049d2e458fc0d0f48fc540770cef4a01f96495eb33c62f1",
       abi: [
         {
           type: "impl",
@@ -277,7 +277,7 @@ const deployedContracts = {
     },
     HabitTracker: {
       address:
-        "0x399bd00efbf565319b81815c1e1204dc14cf4888a77a49f6e73da911606caae",
+        "0x641c1c25ba6fb27a369f1311fc431e0499ef922fd5abceb097f02b66632b0fe",
       abi: [
         {
           type: "impl",
@@ -916,7 +916,7 @@ const deployedContracts = {
         },
       ],
       classHash:
-        "0x57ab02a3074275625ee94d1540ac86851e02df787b3b398969017e4ca57c106",
+        "0x2a5604b70988ce1c78acbf3fee29ea418f2359be5bf755201ce94b0e1002ee9",
     },
   },
 } as const;

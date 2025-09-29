@@ -6,127 +6,129 @@
 const configExternalContracts = {
   devnet: {
     STRK: {
-      address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      address:
+        "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       abi: [
         {
-          "type": "function",
-          "name": "allowance",
-          "inputs": [
+          type: "function",
+          name: "allowance",
+          inputs: [
             {
-              "name": "owner",
-              "type": "core::starknet::contract_address::ContractAddress"
+              name: "owner",
+              type: "core::starknet::contract_address::ContractAddress",
             },
             {
-              "name": "spender", 
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
+              name: "spender",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
           ],
-          "outputs": [
+          outputs: [
             {
-              "type": "core::integer::u256"
-            }
+              type: "core::integer::u256",
+            },
           ],
-          "state_mutability": "view"
+          state_mutability: "view",
         },
         {
-          "type": "function",
-          "name": "approve",
-          "inputs": [
+          type: "function",
+          name: "approve",
+          inputs: [
             {
-              "name": "spender",
-              "type": "core::starknet::contract_address::ContractAddress"
+              name: "spender",
+              type: "core::starknet::contract_address::ContractAddress",
             },
             {
-              "name": "amount",
-              "type": "core::integer::u256"
-            }
+              name: "amount",
+              type: "core::integer::u256",
+            },
           ],
-          "outputs": [
+          outputs: [
             {
-              "type": "core::bool"
-            }
+              type: "core::bool",
+            },
           ],
-          "state_mutability": "external"
+          state_mutability: "external",
         },
         {
-          "type": "function",
-          "name": "balance_of",
-          "inputs": [
+          type: "function",
+          name: "balance_of",
+          inputs: [
             {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
+              name: "account",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
           ],
-          "outputs": [
+          outputs: [
             {
-              "type": "core::integer::u256"
-            }
+              type: "core::integer::u256",
+            },
           ],
-          "state_mutability": "view"
-        }
+          state_mutability: "view",
+        },
       ],
     },
   },
   sepolia: {
     STRK: {
-      address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      address:
+        "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       abi: [
         {
-          "type": "function",
-          "name": "allowance",
-          "inputs": [
+          type: "function",
+          name: "allowance",
+          inputs: [
             {
-              "name": "owner",
-              "type": "core::starknet::contract_address::ContractAddress"
+              name: "owner",
+              type: "core::starknet::contract_address::ContractAddress",
             },
             {
-              "name": "spender", 
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
+              name: "spender",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
           ],
-          "outputs": [
+          outputs: [
             {
-              "type": "core::integer::u256"
-            }
+              type: "core::integer::u256",
+            },
           ],
-          "state_mutability": "view"
+          state_mutability: "view",
         },
         {
-          "type": "function",
-          "name": "approve",
-          "inputs": [
+          type: "function",
+          name: "approve",
+          inputs: [
             {
-              "name": "spender",
-              "type": "core::starknet::contract_address::ContractAddress"
+              name: "spender",
+              type: "core::starknet::contract_address::ContractAddress",
             },
             {
-              "name": "amount",
-              "type": "core::integer::u256"
-            }
+              name: "amount",
+              type: "core::integer::u256",
+            },
           ],
-          "outputs": [
+          outputs: [
             {
-              "type": "core::bool"
-            }
+              type: "core::bool",
+            },
           ],
-          "state_mutability": "external"
+          state_mutability: "external",
         },
         {
-          "type": "function",
-          "name": "balance_of",
-          "inputs": [
+          type: "function",
+          name: "balance_of",
+          inputs: [
             {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
+              name: "account",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
           ],
-          "outputs": [
+          outputs: [
             {
-              "type": "core::integer::u256"
-            }
+              type: "core::integer::u256",
+            },
           ],
-          "state_mutability": "view"
-        }
+          state_mutability: "view",
+        },
       ],
     },
   },

@@ -82,7 +82,7 @@ export const ContractUI = ({
                 <span className="font-bold">{contractName}</span>
                 <Address address={deployedContractData.address} />
                 <ClassHash
-                  classHash={deployedContractData.classHash}
+                  classHash={(deployedContractData as any).classHash}
                   size="xs"
                 />
                 <div className="flex gap-1 items-center h-5">

@@ -1,5 +1,9 @@
 import { useAccount } from "@starknet-react/core";
-import { useScaffoldReadContract, useScaffoldWriteContract, useDeployedContractInfo } from "~~/hooks/scaffold-stark";
+import {
+  useScaffoldReadContract,
+  useScaffoldWriteContract,
+  useDeployedContractInfo,
+} from "~~/hooks/scaffold-stark";
 import { useTransactor } from "~~/hooks/scaffold-stark/useTransactor";
 
 export interface Habit {
@@ -28,21 +32,23 @@ export const useHabitTracker = () => {
   const writeTx = useTransactor();
 
   // Get HabitTracker contract address dynamically
-  const { data: habitTrackerContract } = useDeployedContractInfo("HabitTracker");
+  const { data: habitTrackerContract } =
+    useDeployedContractInfo("HabitTracker");
   const habitTrackerAddress = habitTrackerContract?.address;
 
   // Read functions
-  const { data: userState, refetch: refetchUserState } = useScaffoldReadContract({
-    contractName: "HabitTracker",
-    functionName: "get_user_state",
-    args: connectedAddress ? [connectedAddress] : undefined,
-    watch: true,
-  });
+  const { data: userState, refetch: refetchUserState } =
+    useScaffoldReadContract({
+      contractName: "HabitTracker",
+      functionName: "get_user_state",
+      args: [connectedAddress] as const,
+      watch: true,
+    });
 
   const { data: habits, refetch: refetchHabits } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "get_habits",
-    args: connectedAddress ? [connectedAddress] : undefined,
+    args: [connectedAddress] as const,
     watch: true,
   });
 
@@ -57,17 +63,18 @@ export const useHabitTracker = () => {
   });
 
   // STRK token contract interactions
-  const { data: strkAllowance, refetch: refetchAllowance } = useScaffoldReadContract({
-    contractName: "STRK",
-    functionName: "allowance",
-    args: connectedAddress && habitTrackerAddress ? [connectedAddress, habitTrackerAddress] : undefined,
-    watch: true,
-  });
+  const { data: strkAllowance, refetch: refetchAllowance } =
+    useScaffoldReadContract({
+      contractName: "Strk",
+      functionName: "allowance",
+      args: [connectedAddress, habitTrackerAddress] as const,
+      watch: true,
+    });
 
   const { data: strkBalance } = useScaffoldReadContract({
-    contractName: "STRK",
+    contractName: "Strk",
     functionName: "balance_of",
-    args: connectedAddress ? [connectedAddress] : undefined,
+    args: [connectedAddress] as const,
     watch: true,
   });
 
@@ -75,64 +82,79 @@ export const useHabitTracker = () => {
   const { sendAsync: depositAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "deposit",
+    args: [undefined],
   });
 
   const { sendAsync: withdrawAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "withdraw_from_deposit",
+    args: [undefined],
   });
 
   const { sendAsync: createHabitAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "create_habit",
+    args: [undefined],
   });
 
   const { sendAsync: archiveHabitAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "archive_habit",
+    args: [undefined],
   });
 
   const { sendAsync: checkInAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "check_in",
+    args: [undefined, undefined],
   });
 
   const { sendAsync: prepareDayAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "prepare_day",
+    args: [undefined],
   });
 
   const { sendAsync: settleAllAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "settle_all",
+    args: [undefined, undefined, undefined],
   });
 
   const { sendAsync: forceSettleAllAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "force_settle_all",
+    args: [undefined, undefined, undefined],
   });
 
   const { sendAsync: claimAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "claim",
+    args: [undefined],
   });
 
   const { sendAsync: redepositAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "redeposit_from_claimable",
+    args: [undefined],
   });
 
   // STRK approve function
   const { sendAsync: approveAsync } = useScaffoldWriteContract({
-    contractName: "STRK",
+    contractName: "Strk",
     functionName: "approve",
+    args: [undefined, undefined],
   });
 
   // Helper functions
   const approveSTRK = async (amount: bigint) => {
     if (!amount || amount <= 0 || !habitTrackerAddress) return;
     try {
-      await approveAsync({ args: [habitTrackerAddress, amount] });
+      const args: [typeof habitTrackerAddress, bigint] = [
+        habitTrackerAddress,
+        amount,
+      ];
+      await approveAsync({ args });
       refetchAllowance();
     } catch (error) {
       console.error("STRK approval failed:", error);
@@ -174,7 +196,7 @@ export const useHabitTracker = () => {
     }
   };
 
-  const archiveHabit = async (habitId: number) => {
+  const archiveHabit = async (habitId: number | bigint) => {
     try {
       await archiveHabitAsync({ args: [habitId] });
       refetchHabits();
@@ -185,10 +207,10 @@ export const useHabitTracker = () => {
     }
   };
 
-  const checkIn = async (habitId: number) => {
+  const checkIn = async (habitId: number | bigint) => {
     if (!epochNow) return;
     try {
-      await checkInAsync({ args: [habitId, epochNow] });
+      await checkInAsync({ args: [habitId, Number(epochNow)] });
       refetchHabits();
     } catch (error) {
       console.error("Check-in failed:", error);
@@ -199,7 +221,7 @@ export const useHabitTracker = () => {
   const prepareDay = async () => {
     if (!epochNow) return;
     try {
-      await prepareDayAsync({ args: [epochNow] });
+      await prepareDayAsync({ args: [Number(epochNow)] });
       refetchUserState();
     } catch (error) {
       console.error("Prepare day failed:", error);
@@ -211,9 +233,9 @@ export const useHabitTracker = () => {
     if (!connectedAddress || !epochNow) return;
     try {
       // Settle all habits for yesterday
-      const yesterdayEpoch = BigInt(epochNow) - 1n;
+      const yesterdayEpoch = Number(epochNow) - 1;
       await settleAllAsync({
-        args: [connectedAddress, yesterdayEpoch, 50] // max 50 habits
+        args: [connectedAddress, yesterdayEpoch, 50], // max 50 habits
       });
       refetchUserState();
     } catch (error) {
@@ -227,7 +249,7 @@ export const useHabitTracker = () => {
     try {
       // Force settle all habits for current day (for testing)
       await forceSettleAllAsync({
-        args: [connectedAddress, epochNow, 50] // max 50 habits, current epoch
+        args: [connectedAddress, Number(epochNow), 50], // max 50 habits, current epoch
       });
       refetchUserState();
     } catch (error) {
@@ -260,7 +282,7 @@ export const useHabitTracker = () => {
 
   // Get daily status for a specific habit - removed to fix hooks order violation
   // This functionality should be implemented at the component level
-  const getDailyStatus = (habitId: number) => {
+  const getDailyStatus = (habitId: number | bigint) => {
     // Return undefined for now - components should use useScaffoldReadContract directly
     return undefined;
   };

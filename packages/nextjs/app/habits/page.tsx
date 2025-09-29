@@ -39,7 +39,7 @@ export default function HabitTrackerPage() {
   // Update timer every second
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimerKey(prev => prev + 1);
+      setTimerKey((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -58,7 +58,7 @@ export default function HabitTrackerPage() {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const isDayPrepared = () => {
@@ -109,26 +109,32 @@ export default function HabitTrackerPage() {
             <div className="bg-base-100 p-4 rounded">
               <div className="text-sm text-gray-500">Deposit Balance</div>
               <div className="text-2xl font-bold">
-                {userState ? formatSTRK(userState.deposit_balance) : "0.00"} STRK
+                {userState ? formatSTRK(userState.deposit_balance) : "0.00"}{" "}
+                STRK
               </div>
             </div>
             <div className="bg-base-100 p-4 rounded">
               <div className="text-sm text-gray-500">Claimable Balance</div>
               <div className="text-2xl font-bold">
-                {userState ? formatSTRK(userState.claimable_balance) : "0.00"} STRK
+                {userState ? formatSTRK(userState.claimable_balance) : "0.00"}{" "}
+                STRK
               </div>
             </div>
           </div>
 
           {/* STRK Approval */}
           <div className="bg-yellow-50 border border-yellow-200 p-4 rounded mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-yellow-800">STRK Token Approval</h3>
+            <h3 className="text-lg font-semibold mb-3 text-yellow-800">
+              STRK Token Approval
+            </h3>
             <div className="mb-3">
               <div className="text-sm text-gray-600 mb-1">
-                Current Allowance: {strkAllowance ? formatSTRK(strkAllowance) : "0.00"} STRK
+                Current Allowance:{" "}
+                {strkAllowance ? formatSTRK(strkAllowance) : "0.00"} STRK
               </div>
               <div className="text-sm text-gray-600">
-                You need to approve the HabitTracker contract to spend your STRK tokens before depositing.
+                You need to approve the HabitTracker contract to spend your STRK
+                tokens before depositing.
               </div>
             </div>
             <div className="flex gap-2">
@@ -141,7 +147,9 @@ export default function HabitTrackerPage() {
               />
               <button
                 className="btn btn-warning"
-                onClick={() => approveSTRK(BigInt(parseFloat(approveAmount || "0") * 1e18))}
+                onClick={() =>
+                  approveSTRK(BigInt(parseFloat(approveAmount || "0") * 1e18))
+                }
                 disabled={!approveAmount || parseFloat(approveAmount) <= 0}
               >
                 Approve STRK
@@ -163,7 +171,9 @@ export default function HabitTrackerPage() {
                 />
                 <button
                   className="btn btn-primary"
-                  onClick={() => deposit(BigInt(depositAmount) * BigInt(10**18))}
+                  onClick={() =>
+                    deposit(BigInt(depositAmount) * BigInt(10 ** 18))
+                  }
                   disabled={!depositAmount}
                 >
                   Deposit
@@ -172,7 +182,9 @@ export default function HabitTrackerPage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Withdraw from Deposit</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Withdraw from Deposit
+              </h3>
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -183,7 +195,9 @@ export default function HabitTrackerPage() {
                 />
                 <button
                   className="btn btn-secondary"
-                  onClick={() => withdraw(BigInt(withdrawAmount) * BigInt(10**18))}
+                  onClick={() =>
+                    withdraw(BigInt(withdrawAmount) * BigInt(10 ** 18))
+                  }
                   disabled={!withdrawAmount}
                 >
                   Withdraw
@@ -205,21 +219,33 @@ export default function HabitTrackerPage() {
                 </div>
                 <div>
                   <div className="font-semibold">Stake per Habit</div>
-                  <div className="text-lg">{stakePerDay ? formatSTRK(stakePerDay) : "10.00"} STRK</div>
+                  <div className="text-lg">
+                    {stakePerDay ? formatSTRK(stakePerDay) : "10.00"} STRK
+                  </div>
                 </div>
                 <div>
                   <div className="font-semibold">Active Habits</div>
-                  <div className="text-lg">{userState?.active_habit_count || 0}</div>
+                  <div className="text-lg">
+                    {userState?.active_habit_count || 0}
+                  </div>
                 </div>
                 <div>
                   <div className="font-semibold">Blocked Balance</div>
-                  <div className="text-lg">{userState ? formatSTRK(userState.blocked_balance) : "0.00"} STRK</div>
+                  <div className="text-lg">
+                    {userState ? formatSTRK(userState.blocked_balance) : "0.00"}{" "}
+                    STRK
+                  </div>
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm font-semibold mb-1">Time until Midnight UTC</div>
-              <div className="text-2xl font-mono font-bold text-primary" key={timerKey}>
+              <div className="text-sm font-semibold mb-1">
+                Time until Midnight UTC
+              </div>
+              <div
+                className="text-2xl font-mono font-bold text-primary"
+                key={timerKey}
+              >
                 {getTimeUntilMidnight() || "--:--:--"}
               </div>
               <div className="text-xs text-gray-600 mt-1">
@@ -233,16 +259,17 @@ export default function HabitTrackerPage() {
               <div className="text-sm">
                 <div className="font-semibold">Daily Actions</div>
                 <div className="text-xs text-gray-600">
-                  Prepare day to fund habits • Settle after midnight to claim rewards
+                  Prepare day to fund habits • Settle after midnight to claim
+                  rewards
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
-                  className={`btn btn-outline ${isDayPrepared() ? 'btn-success' : ''}`}
+                  className={`btn btn-outline ${isDayPrepared() ? "btn-success" : ""}`}
                   onClick={prepareDay}
                   disabled={isDayPrepared()}
                 >
-                  {isDayPrepared() ? 'Day Prepared ✓' : 'Prepare Day'}
+                  {isDayPrepared() ? "Day Prepared ✓" : "Prepare Day"}
                 </button>
                 <button
                   className="btn btn-warning"
@@ -309,17 +336,29 @@ export default function HabitTrackerPage() {
           <div className="space-y-4">
             {habits?.map((habit) => {
               return (
-                <div key={habit.id} className="bg-base-100 p-4 rounded flex justify-between items-center">
+                <div
+                  key={habit.id}
+                  className="bg-base-100 p-4 rounded flex justify-between items-center"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">#{habit.id}</span>
-                      <span className={habit.archived ? "text-gray-500 line-through" : ""}>
+                      <span
+                        className={
+                          habit.archived ? "text-gray-500 line-through" : ""
+                        }
+                      >
                         {habit.text}
                       </span>
-                      {habit.archived && <span className="badge badge-neutral">Archived</span>}
+                      {habit.archived && (
+                        <span className="badge badge-neutral">Archived</span>
+                      )}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
-                      Created: {new Date(Number(habit.created_at_epoch) * 86400 * 1000).toLocaleDateString()}
+                      Created:{" "}
+                      {new Date(
+                        Number(habit.created_at_epoch) * 86400 * 1000,
+                      ).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -336,7 +375,7 @@ export default function HabitTrackerPage() {
                       onClick={() => archiveHabit(habit.id)}
                       disabled={habit.archived}
                     >
-                      {habit.archived ? 'Archived' : 'Archive'}
+                      {habit.archived ? "Archived" : "Archive"}
                     </button>
                   </div>
                 </div>
@@ -367,7 +406,9 @@ export default function HabitTrackerPage() {
                   />
                   <button
                     className="btn btn-success"
-                    onClick={() => claim(BigInt(claimAmount) * BigInt(10**18))}
+                    onClick={() =>
+                      claim(BigInt(claimAmount) * BigInt(10 ** 18))
+                    }
                     disabled={!claimAmount}
                   >
                     Claim
@@ -376,7 +417,9 @@ export default function HabitTrackerPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-2">Redeposit to Stake</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Redeposit to Stake
+                </h3>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -387,7 +430,9 @@ export default function HabitTrackerPage() {
                   />
                   <button
                     className="btn btn-info"
-                    onClick={() => redeposit(BigInt(redepositAmount) * BigInt(10**18))}
+                    onClick={() =>
+                      redeposit(BigInt(redepositAmount) * BigInt(10 ** 18))
+                    }
                     disabled={!redepositAmount}
                   >
                     Redeposit
