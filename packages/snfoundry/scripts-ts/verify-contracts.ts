@@ -38,15 +38,19 @@ function main() {
   Object.entries(contractsToVerify).forEach(
     ([contractName, contractInfo]: [string, any]) => {
       const { address, abi } = contractInfo;
-      const interfaceNameItem = abi.find(
-        (item) => item.type === "impl" && item.interface_name
+
+      // Find the contract implementation that matches the contractName
+      const contractImpl = abi.find(
+        (item) => item.type === "impl" && item.name && item.name.includes(contractName)
       );
-      if (!interfaceNameItem) {
-        console.error(red(`Failed to find Contract for ${contractName}`));
+
+      if (!contractImpl) {
+        console.error(red(`Failed to find Contract implementation for ${contractName}`));
         return;
       }
-      const contractParts = interfaceNameItem.interface_name.split("::");
-      const contract = contractParts[contractParts.length - 2];
+
+      // Extract the contract name from the impl name (remove "Impl" suffix)
+      const contract = contractImpl.name.replace("Impl", "");
 
       console.log(yellow(`Verifying ${contractName} on ${network}...`));
       try {
