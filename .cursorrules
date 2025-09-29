@@ -3,7 +3,10 @@
 - If you want to run something, ask me first
 - When running commands, prefere the ones in the outter most package.json of this project
 - Feel free to run yarn deploy and update the contracts and abi if needed
-- When waiting for, wait for only 1s
+- When waiting for someting, wait for only 1 second.
+- Watch out for errors related to mixing BigInt and other types, use explicit conversions.
+- Run lint and type check after making changes and fix errors.
+
 
 # Scaffold-Stark 2 Development Assistant
 

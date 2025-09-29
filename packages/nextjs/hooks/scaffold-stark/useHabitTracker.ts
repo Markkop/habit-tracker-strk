@@ -6,6 +6,34 @@ import {
 } from "~~/hooks/scaffold-stark";
 import { useTransactor } from "~~/hooks/scaffold-stark/useTransactor";
 
+// Helper function to convert felt252 to string
+const felt252ToString = (felt: bigint | number | string): string => {
+  try {
+    // If it's already a reasonable string, return it
+    if (typeof felt === "string" && felt.length < 32 && !felt.startsWith("0x")) {
+      return felt;
+    }
+    
+    const feltBigInt = typeof felt === "bigint" ? felt : BigInt(felt);
+    const hex = feltBigInt.toString(16);
+    
+    // Ensure even length
+    const paddedHex = hex.length % 2 === 0 ? hex : "0" + hex;
+    
+    let str = "";
+    for (let i = 0; i < paddedHex.length; i += 2) {
+      const byte = parseInt(paddedHex.substring(i, i + 2), 16);
+      // Only include printable ASCII characters (32-126) and common whitespace
+      if (byte >= 32 && byte <= 126) {
+        str += String.fromCharCode(byte);
+      }
+    }
+    return str || felt.toString();
+  } catch {
+    return String(felt);
+  }
+};
+
 export interface Habit {
   id: number;
   owner: string;
@@ -62,6 +90,19 @@ export const useHabitTracker = () => {
     functionName: "stake_per_day",
   });
 
+  const { data: treasuryAddressRaw } = useScaffoldReadContract({
+    contractName: "HabitTracker",
+    functionName: "treasury_address",
+  });
+
+  // Convert treasury address to string
+  const treasuryAddress =
+    treasuryAddressRaw && typeof treasuryAddressRaw === "object" && "toString" in treasuryAddressRaw
+      ? (treasuryAddressRaw as any).toString()
+      : treasuryAddressRaw
+        ? String(treasuryAddressRaw)
+        : undefined;
+
   // STRK token contract interactions
   const { data: strkAllowance, refetch: refetchAllowance } =
     useScaffoldReadContract({
@@ -75,6 +116,13 @@ export const useHabitTracker = () => {
     contractName: "Strk",
     functionName: "balance_of",
     args: [connectedAddress] as const,
+    watch: true,
+  });
+
+  const { data: treasuryBalance } = useScaffoldReadContract({
+    contractName: "Strk",
+    functionName: "balance_of",
+    args: [treasuryAddress] as const,
     watch: true,
   });
 
@@ -287,14 +335,24 @@ export const useHabitTracker = () => {
     return undefined;
   };
 
+  // Transform habits to convert felt252 text to readable string
+  const transformedHabits = habits
+    ? (habits as unknown as any[]).map((habit) => ({
+        ...habit,
+        text: felt252ToString(habit.text),
+      }))
+    : undefined;
+
   return {
     // State
     userState: userState as UserState | undefined,
-    habits: habits as Habit[] | undefined,
+    habits: transformedHabits as Habit[] | undefined,
     epochNow: epochNow as number | undefined,
     stakePerDay: stakePerDay as bigint | undefined,
     strkBalance: strkBalance as bigint | undefined,
     strkAllowance: strkAllowance as bigint | undefined,
+    treasuryAddress: treasuryAddress as string | undefined,
+    treasuryBalance: treasuryBalance as bigint | undefined,
 
     // Actions
     approveSTRK,
