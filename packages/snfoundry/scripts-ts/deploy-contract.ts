@@ -418,7 +418,9 @@ const executeDeployCalls = async (options?: UniversalDetails) => {
 
   try {
     const executeOptions =
-      networkName === "devnet" ? { ...options, tip: 1000n } : { ...options };
+      networkName === "devnet"
+        ? { ...options, tip: 1000n }
+        : { ...options, tip: 10000000000n };
     let { transaction_hash } = await deployer.execute(
       deployCalls,
       executeOptions
