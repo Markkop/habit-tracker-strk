@@ -521,7 +521,7 @@ export default function HabitTrackerPage() {
                 <button
                   className="btn btn-primary"
                   onClick={() =>
-                    deposit(BigInt(depositAmount) * BigInt(10 ** 18))
+                    deposit(BigInt(parseFloat(depositAmount || "0") * 1e18))
                   }
                   disabled={!depositAmount}
                 >
@@ -530,81 +530,108 @@ export default function HabitTrackerPage() {
               </div>
             </div>
 
-            {/* Withdraw */}
-            <div>
-              <label className="text-sm font-semibold mb-2 block">
-                Withdraw Available Balance
-              </label>
-              <div className="flex gap-2">
+          {/* Withdraw */}
+          <div>
+            <label className="text-sm font-semibold mb-2 block">
+              Withdraw Available Balance
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
                 <input
                   type="number"
                   placeholder="Amount"
-                  className="input input-bordered flex-1"
+                  className="input input-bordered w-full pr-16"
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                 />
                 <button
-                  className="btn btn-secondary"
-                  onClick={() =>
-                    withdraw(BigInt(withdrawAmount) * BigInt(10 ** 18))
-                  }
-                  disabled={!withdrawAmount}
+                  className="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={() => setWithdrawAmount(formatSTRK(availableBalance))}
+                  disabled={availableBalance <= 0n}
                 >
-                  Withdraw
+                  Max
                 </button>
               </div>
+              <button
+                className="btn btn-secondary"
+                onClick={() =>
+                  withdraw(BigInt(parseFloat(withdrawAmount || "0") * 1e18))
+                }
+                disabled={!withdrawAmount}
+              >
+                Withdraw
+              </button>
             </div>
+          </div>
           </div>
 
           {/* Claim & Redeposit */}
           <div className="bg-base-200 rounded-lg p-6">
             <h3 className="text-xl font-bold mb-4">🎁 Claim Rewards</h3>
 
-            <div className="mb-4">
-              <label className="text-sm font-semibold mb-2 block">
-                Claim to Wallet
-              </label>
-              <div className="flex gap-2">
+          <div className="mb-4">
+            <label className="text-sm font-semibold mb-2 block">
+              Claim to Wallet
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
                 <input
                   type="number"
                   placeholder="Amount"
-                  className="input input-bordered flex-1"
+                  className="input input-bordered w-full pr-16"
                   value={claimAmount}
                   onChange={(e) => setClaimAmount(e.target.value)}
                 />
                 <button
-                  className="btn btn-success"
-                  onClick={() => claim(BigInt(claimAmount) * BigInt(10 ** 18))}
-                  disabled={!claimAmount}
+                  className="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={() => setClaimAmount(formatSTRK(userState?.claimable_balance || 0n))}
+                  disabled={!userState || userState.claimable_balance <= 0n}
                 >
-                  Claim
+                  Max
                 </button>
               </div>
+              <button
+                className="btn btn-success"
+                onClick={() => claim(BigInt(parseFloat(claimAmount || "0") * 1e18))}
+                disabled={!claimAmount}
+              >
+                Claim
+              </button>
             </div>
+          </div>
 
-            <div>
-              <label className="text-sm font-semibold mb-2 block">
-                Redeposit to Stake
-              </label>
-              <div className="flex gap-2">
+          <div>
+            <label className="text-sm font-semibold mb-2 block">
+              Redeposit to Stake
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
                 <input
                   type="number"
                   placeholder="Amount"
-                  className="input input-bordered flex-1"
+                  className="input input-bordered w-full pr-16"
                   value={redepositAmount}
                   onChange={(e) => setRedepositAmount(e.target.value)}
                 />
                 <button
-                  className="btn btn-info"
-                  onClick={() =>
-                    redeposit(BigInt(redepositAmount) * BigInt(10 ** 18))
-                  }
-                  disabled={!redepositAmount}
+                  className="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={() => setRedepositAmount(formatSTRK(userState?.claimable_balance || 0n))}
+                  disabled={!userState || userState.claimable_balance <= 0n}
                 >
-                  Redeposit
+                  Max
                 </button>
               </div>
+              <button
+                className="btn btn-info"
+                onClick={() =>
+                  redeposit(BigInt(parseFloat(redepositAmount || "0") * 1e18))
+                }
+                disabled={!redepositAmount}
+              >
+                Redeposit
+              </button>
             </div>
+          </div>
           </div>
         </div>
 
