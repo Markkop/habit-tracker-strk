@@ -41,6 +41,7 @@ pub trait IHabitTracker<TContractState> {
     fn prepare_day(ref self: TContractState, epoch_id: u64);
     fn settle(ref self: TContractState, user: ContractAddress, epoch_id: u64, habit_id: u32);
     fn settle_all(ref self: TContractState, user: ContractAddress, epoch_id: u64, max_count: u32);
+    fn force_settle_all(ref self: TContractState, user: ContractAddress, epoch_id: u64, max_count: u32);
     fn claim(ref self: TContractState, amount: u256);
     fn redeposit_from_claimable(ref self: TContractState, amount: u256);
 
@@ -385,7 +386,13 @@ pub mod HabitTracker {
                 blocked_balance -= STAKE_PER_DAY;
                 self.user_blocked_balance.write(user, blocked_balance);
 
+                // Always decrement deposit_balance since funds are leaving the deposit pool
+                let mut deposit_balance = self.user_deposit_balance.read(user);
+                deposit_balance -= STAKE_PER_DAY;
+                self.user_deposit_balance.write(user, deposit_balance);
+
                 if status.checked {
+                    // Success: Move funds from deposit to claimable
                     let mut claimable_balance = self.user_claimable_balance.read(user);
                     claimable_balance += STAKE_PER_DAY;
                     self.user_claimable_balance.write(user, claimable_balance);
@@ -397,9 +404,7 @@ pub mod HabitTracker {
                         amount: STAKE_PER_DAY
                     });
                 } else {
-                    let mut deposit_balance = self.user_deposit_balance.read(user);
-                    deposit_balance -= STAKE_PER_DAY;
-                    self.user_deposit_balance.write(user, deposit_balance);
+                    // Failure: Send funds to treasury
 
                     let strk_dispatcher = IERC20Dispatcher {
                         contract_address: STRK_CONTRACT.try_into().unwrap()
@@ -436,6 +441,90 @@ pub mod HabitTracker {
                 }
                 habit_id += 1;
             };
+        }
+
+        fn force_settle_all(ref self: ContractState, user: ContractAddress, epoch_id: u64, max_count: u32) {
+            // WARNING: This function bypasses the time check for testing purposes
+            // It allows settling habits for the current day without waiting for midnight UTC
+            // After settling, it automatically resets all daily statuses to allow repeated testing
+            assert(max_count > 0 && max_count <= 50, 'Invalid max_count');
+
+            let mut processed = 0;
+            let mut habit_id = 1;
+
+            while processed < max_count && habit_id <= self.user_habit_counter.read(user) {
+                let habit = self.habits.read((user, habit_id));
+                if habit.id == habit_id && !habit.archived {
+                    let mut status = self.daily_status.read((user, epoch_id, habit_id));
+                    
+                    if status.funded && !status.settled {
+                        // Mark as settled
+                        let new_status = DailyStatus {
+                            funded: status.funded,
+                            checked: status.checked,
+                            settled: true,
+                        };
+                        self.daily_status.write((user, epoch_id, habit_id), new_status);
+
+                        // Unblock the stake
+                        let mut blocked_balance = self.user_blocked_balance.read(user);
+                        blocked_balance -= STAKE_PER_DAY;
+                        self.user_blocked_balance.write(user, blocked_balance);
+
+                        // Always decrement deposit_balance since funds are leaving the deposit pool
+                        let mut deposit_balance = self.user_deposit_balance.read(user);
+                        deposit_balance -= STAKE_PER_DAY;
+                        self.user_deposit_balance.write(user, deposit_balance);
+
+                        // Process outcome
+                        if status.checked {
+                            // Success: Move funds from deposit to claimable
+                            let mut claimable_balance = self.user_claimable_balance.read(user);
+                            claimable_balance += STAKE_PER_DAY;
+                            self.user_claimable_balance.write(user, claimable_balance);
+
+                            self.emit(SettledSuccess {
+                                user,
+                                habit_id,
+                                epoch_id,
+                                amount: STAKE_PER_DAY
+                            });
+                        } else {
+                            // Failure: Send funds to treasury
+
+                            let strk_dispatcher = IERC20Dispatcher {
+                                contract_address: STRK_CONTRACT.try_into().unwrap()
+                            };
+                            let success = strk_dispatcher.transfer(self.treasury_address.read(()), STAKE_PER_DAY);
+                            assert(success, 'Treasury transfer failed');
+
+                            self.emit(SettledFail {
+                                user,
+                                habit_id,
+                                epoch_id,
+                                amount: STAKE_PER_DAY
+                            });
+                        }
+                        processed += 1;
+                    }
+                }
+                habit_id += 1;
+            };
+
+            // Auto-reset: Clear all daily statuses for this epoch to allow repeated testing
+            habit_id = 1;
+            while habit_id <= self.user_habit_counter.read(user) {
+                let empty_status = DailyStatus {
+                    funded: false,
+                    checked: false,
+                    settled: false,
+                };
+                self.daily_status.write((user, epoch_id, habit_id), empty_status);
+                habit_id += 1;
+            };
+
+            // Clear the day_prepared flag for this epoch
+            self.day_prepared.write((user, epoch_id), false);
         }
 
         fn claim(ref self: ContractState, amount: u256) {

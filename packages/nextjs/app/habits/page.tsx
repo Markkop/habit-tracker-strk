@@ -23,6 +23,7 @@ export default function HabitTrackerPage() {
     checkIn,
     prepareDay,
     settleDay,
+    forceSettleAll,
     claim,
     redeposit,
   } = useHabitTracker();
@@ -249,6 +250,26 @@ export default function HabitTrackerPage() {
                   disabled={!canSettle()}
                 >
                   Settle Yesterday
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Testing Actions */}
+          <div className="border-t pt-4 mt-4 bg-error/10 p-4 rounded">
+            <div className="flex justify-between items-center">
+              <div className="text-sm">
+                <div className="font-semibold text-error">🧪 Testing Tools</div>
+                <div className="text-xs text-gray-600">
+                  Force settle immediately without waiting for midnight UTC
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="btn btn-error btn-outline"
+                  onClick={forceSettleAll}
+                >
+                  ⚡ Force Settle All
                 </button>
               </div>
             </div>

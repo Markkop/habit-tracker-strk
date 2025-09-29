@@ -1,5 +1,5 @@
 import { useAccount } from "@starknet-react/core";
-import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-stark";
+import { useScaffoldReadContract, useScaffoldWriteContract, useDeployedContractInfo } from "~~/hooks/scaffold-stark";
 import { useTransactor } from "~~/hooks/scaffold-stark/useTransactor";
 
 export interface Habit {
@@ -27,6 +27,10 @@ export const useHabitTracker = () => {
   const { address: connectedAddress } = useAccount();
   const writeTx = useTransactor();
 
+  // Get HabitTracker contract address dynamically
+  const { data: habitTrackerContract } = useDeployedContractInfo("HabitTracker");
+  const habitTrackerAddress = habitTrackerContract?.address;
+
   // Read functions
   const { data: userState, refetch: refetchUserState } = useScaffoldReadContract({
     contractName: "HabitTracker",
@@ -52,18 +56,11 @@ export const useHabitTracker = () => {
     functionName: "stake_per_day",
   });
 
-  // Get HabitTracker contract address for STRK approval
-  const { data: habitTrackerInfo } = useScaffoldReadContract({
-    contractName: "HabitTracker",
-    functionName: "get_user_state",
-    args: connectedAddress ? [connectedAddress] : undefined,
-  });
-
   // STRK token contract interactions
   const { data: strkAllowance, refetch: refetchAllowance } = useScaffoldReadContract({
     contractName: "STRK",
     functionName: "allowance",
-    args: connectedAddress && habitTrackerInfo ? [connectedAddress, "0x5f2ce149e26159f3fde5ce5daf2b3663ffe1c4406b5d1fd4b24de3272137fef"] : undefined,
+    args: connectedAddress && habitTrackerAddress ? [connectedAddress, habitTrackerAddress] : undefined,
     watch: true,
   });
 
@@ -110,6 +107,11 @@ export const useHabitTracker = () => {
     functionName: "settle_all",
   });
 
+  const { sendAsync: forceSettleAllAsync } = useScaffoldWriteContract({
+    contractName: "HabitTracker",
+    functionName: "force_settle_all",
+  });
+
   const { sendAsync: claimAsync } = useScaffoldWriteContract({
     contractName: "HabitTracker",
     functionName: "claim",
@@ -128,9 +130,9 @@ export const useHabitTracker = () => {
 
   // Helper functions
   const approveSTRK = async (amount: bigint) => {
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0 || !habitTrackerAddress) return;
     try {
-      await approveAsync({ args: ["0x5f2ce149e26159f3fde5ce5daf2b3663ffe1c4406b5d1fd4b24de3272137fef", amount] });
+      await approveAsync({ args: [habitTrackerAddress, amount] });
       refetchAllowance();
     } catch (error) {
       console.error("STRK approval failed:", error);
@@ -209,13 +211,27 @@ export const useHabitTracker = () => {
     if (!connectedAddress || !epochNow) return;
     try {
       // Settle all habits for yesterday
-      const yesterdayEpoch = epochNow - 1;
+      const yesterdayEpoch = BigInt(epochNow) - 1n;
       await settleAllAsync({
         args: [connectedAddress, yesterdayEpoch, 50] // max 50 habits
       });
       refetchUserState();
     } catch (error) {
       console.error("Settle day failed:", error);
+      throw error;
+    }
+  };
+
+  const forceSettleAll = async () => {
+    if (!connectedAddress || !epochNow) return;
+    try {
+      // Force settle all habits for current day (for testing)
+      await forceSettleAllAsync({
+        args: [connectedAddress, epochNow, 50] // max 50 habits, current epoch
+      });
+      refetchUserState();
+    } catch (error) {
+      console.error("Force settle failed:", error);
       throw error;
     }
   };
@@ -267,6 +283,7 @@ export const useHabitTracker = () => {
     checkIn,
     prepareDay,
     settleDay,
+    forceSettleAll,
     claim,
     redeposit,
 

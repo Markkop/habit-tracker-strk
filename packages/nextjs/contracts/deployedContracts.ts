@@ -7,7 +7,7 @@ const deployedContracts = {
   devnet: {
     YourContract: {
       address:
-        "0x1595609b2f219d821640ab76f98eb9cafae786178f32913da6f380e00ac18c7",
+        "0x6dccaa5078d7ae66f6aa6c7bb61866e336a9bee5f56c67c0ccb52ce3f100c7e",
       abi: [
         {
           type: "impl",
@@ -273,11 +273,11 @@ const deployedContracts = {
         },
       ],
       classHash:
-        "0x73e64394744804c476eb7a4ad56902d49e77565ad413e6a34726b4914cc4d1b",
+        "0x21e2aa81952de7b6851d5e76ea1f70283373407b22bfb4d32fafa4c5e2c8f1d",
     },
     HabitTracker: {
       address:
-        "0x5f2ce149e26159f3fde5ce5daf2b3663ffe1c4406b5d1fd4b24de3272137fef",
+        "0x399bd00efbf565319b81815c1e1204dc14cf4888a77a49f6e73da911606caae",
       abi: [
         {
           type: "impl",
@@ -485,6 +485,26 @@ const deployedContracts = {
             {
               type: "function",
               name: "settle_all",
+              inputs: [
+                {
+                  name: "user",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+                {
+                  name: "epoch_id",
+                  type: "core::integer::u64",
+                },
+                {
+                  name: "max_count",
+                  type: "core::integer::u32",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "force_settle_all",
               inputs: [
                 {
                   name: "user",
@@ -896,7 +916,7 @@ const deployedContracts = {
         },
       ],
       classHash:
-        "0x44bbbe021bd3f3d24d512673003be21e12ab0d9ed51d59e0fcb0daeeb74fde9",
+        "0x57ab02a3074275625ee94d1540ac86851e02df787b3b398969017e4ca57c106",
     },
   },
 } as const;
