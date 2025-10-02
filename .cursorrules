@@ -6,6 +6,7 @@
 - When waiting for someting, wait for only 1 second.
 - Watch out for errors related to mixing BigInt and other types, use explicit conversions.
 - Run lint and type check after making changes and fix errors.
+- Avoid taking screenshots with the Chrome MCP, try using snapshot only, except for specific UI layout issues.
 
 
 # Scaffold-Stark 2 Development Assistant
