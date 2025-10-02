@@ -52,12 +52,13 @@ const deployScript = async (): Promise<void> => {
     },
   });
 
-  // Deploy HabitTracker contract with treasury address (using deployer as treasury)
+  // Deploy HabitTracker contract with treasury address and staking contract
   await deployContract({
     contract: "HabitTracker",
     contractName: "HabitTracker",
     constructorArgs: {
       treasury_addr: deployer.address, // Using deployer as treasury for now
+      staking_contract_addr: "0x1", // Using dummy address for now (staking will skip if contract doesn't exist)
     },
   });
 };

@@ -8,3 +8,4 @@ export * from "./useSwitchNetwork";
 export * from "./useScaffoldReadContract";
 export * from "./useScaffoldWriteContract";
 export * from "./useHabitTracker";
+export * from "./useHabitVault";
