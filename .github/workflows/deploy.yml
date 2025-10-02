@@ -1,7 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Temporarily disabled - static export doesn't support dynamic routes in block explorer
+  # Disabled: Dynamic routes with empty generateStaticParams() don't work with static export
+  # Next.js requires pre-rendered paths for static export, but our block explorer
+  # uses purely client-side dynamic routes that can't be pre-generated
+  # See: https://nextjs.org/docs/app/building-your-application/deploying/static-exports
   # push:
   #   branches:
   #     - main

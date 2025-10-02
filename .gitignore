@@ -16,3 +16,5 @@ package-lock.json
 
 **/.env*
 !**/.env.example
+sw.js
+workbox-*.js
