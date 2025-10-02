@@ -78,6 +78,24 @@ Visit `http://localhost:3000` to access the app.
 - Withdraw successfully earned STRK
 - Redeploy winnings for more stakes
 
+## 🌐 Deployment
+
+### GitHub Pages
+This project is configured for deployment to GitHub Pages. See [GITHUB_PAGES_SETUP.md](./GITHUB_PAGES_SETUP.md) for detailed instructions.
+
+Quick steps:
+1. Enable GitHub Pages in repository settings (Settings > Pages > Source: GitHub Actions)
+2. Push to main branch
+3. GitHub Actions will automatically build and deploy
+
+Your site will be available at: `https://<username>.github.io/<repository-name>/`
+
+### Vercel
+Alternatively, you can deploy to Vercel:
+```bash
+yarn vercel
+```
+
 ## 🔮 Roadmap
 
 - [ ] Integrate yield to blocked/claimable balances

@@ -150,30 +150,121 @@ export const notification = {
     return Notification({ content, status: "warning", ...options });
   },
   error: (content: React.ReactNode, options?: NotificationOptions) => {
-    const logId = `tx-error-${Date.now()}`;
-    console.error(`[${logId}] Transaction error:`, content);
+    const logId = `error-${Date.now()}`;
+    
+    // Handle different error types and extract meaningful information
+    let displayContent: React.ReactNode;
+    let consoleError: any = content;
+    let errorMessage = "";
+    let errorDetails: string | undefined;
+    
+    // Extract error information from various error types
+    if (content instanceof Error) {
+      consoleError = content;
+      errorMessage = content.message;
+      errorDetails = content.stack;
+    } else if (typeof content === "object" && content !== null) {
+      consoleError = content;
+      
+      // Try to extract message from various error object structures
+      if ("message" in content) {
+        errorMessage = String((content as any).message);
+      } else if ("error" in content && typeof (content as any).error === "string") {
+        errorMessage = (content as any).error;
+      } else if ("error" in content && typeof (content as any).error === "object") {
+        errorMessage = (content as any).error.message || JSON.stringify((content as any).error);
+      } else if ("reason" in content) {
+        errorMessage = String((content as any).reason);
+      } else if ("data" in content && typeof (content as any).data === "object" && "message" in (content as any).data) {
+        errorMessage = String((content as any).data.message);
+      }
+      
+      // If no message extracted, try to stringify the object
+      if (!errorMessage) {
+        try {
+          errorMessage = JSON.stringify(content, null, 2);
+        } catch {
+          errorMessage = "Unknown error";
+        }
+      }
+      
+      // Try to get additional details
+      if ("data" in content) {
+        try {
+          errorDetails = JSON.stringify((content as any).data, null, 2);
+        } catch {
+          // ignore
+        }
+      }
+    } else if (typeof content === "string") {
+      errorMessage = content;
+    } else if (React.isValidElement(content)) {
+      // If it's already valid JSX, use it directly
+      displayContent = content;
+      console.error(`[${logId}]`, content);
+      return Notification({
+        content: displayContent,
+        status: "error",
+        duration: options?.duration || 8000,
+        ...options,
+      });
+    } else {
+      // Fallback for other types
+      try {
+        errorMessage = JSON.stringify(content);
+      } catch {
+        errorMessage = "An unknown error occurred";
+      }
+    }
 
-    const fallbackContent: React.ReactNode = (
+    // Clean up common error patterns for better UX
+    errorMessage = errorMessage
+      .replace(/^Error:\s*/i, "")
+      .replace(/Contract error:/i, "Contract Error:")
+      .trim();
+
+    // Create user-friendly display content
+    displayContent = (
       <div>
-        <div className="font-semibold text-red-500 text-base">
-          ❌ Transaction failed
-        </div>
-        <div className="text-sm">Check the console for more details.</div>
-        <div className="text-sm">
+        <div className="font-bold mb-1">❌ Error</div>
+        <div className="text-sm break-words">{errorMessage}</div>
+        {errorDetails && (
+          <details className="mt-2">
+            <summary className="text-xs cursor-pointer text-blue-500 hover:text-blue-700">
+              View Details
+            </summary>
+            <pre className="text-xs mt-1 p-2 bg-base-300 rounded overflow-x-auto max-h-32">
+              {errorDetails}
+            </pre>
+          </details>
+        )}
+        <div className="text-xs mt-2 opacity-70">
           <a
-            href={`#${logId}`}
-            className="text-blue-500 underline"
-            onClick={() => console.log(`Navigate to log ID: ${logId}`)}
+            href="#console"
+            className="text-blue-500 underline hover:text-blue-700"
+            onClick={(e) => {
+              e.preventDefault();
+              console.log(`[${logId}] Full error details:`, consoleError);
+            }}
           >
-            View log: {logId}
+            Log ID: {logId}
           </a>
         </div>
       </div>
     );
 
+    // Log comprehensive error details to console
+    console.group(`[${logId}] Error Details`);
+    console.error("Error:", consoleError);
+    if (errorMessage) console.error("Message:", errorMessage);
+    if (errorDetails) console.error("Details:", errorDetails);
+    console.trace("Stack trace:");
+    console.groupEnd();
+
     return Notification({
-      content: fallbackContent,
+      content: displayContent,
       status: "error",
+      duration: options?.duration || 8000, // Longer duration for errors
       ...options,
     });
   },

@@ -10,11 +10,19 @@ const withPWA = nextPWA({
 });
 
 const nextConfig = {
+  // NOTE: Static export enabled with client-side routing fallback
+  // Uses 404.html to handle dynamic routes client-side via spa-github-pages approach
+  // All unknown routes fall back to 404.html which preserves the path and redirects
+  output: "export", // Enable static exports for GitHub Pages
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || "", // Support GitHub Pages repo path
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || "", // Ensure assets load correctly
+  trailingSlash: true, // Required for proper routing on static hosts
   reactStrictMode: true,
   logging: {
     incomingRequests: false,
   },
   images: {
+    unoptimized: true, // Required for static export
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {
