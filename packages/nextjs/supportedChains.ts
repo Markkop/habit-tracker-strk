@@ -32,6 +32,7 @@ const mainnetFork = {
 
 const devnet = {
   ...chains.devnet,
+  id: BigInt("0x534e5f4445564e4554"), // SN_DEVNET in hex
   rpcUrls: {
     default: {
       http: [],

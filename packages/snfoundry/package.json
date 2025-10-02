@@ -2,7 +2,7 @@
   "name": "@ss-2/snfoundry",
   "version": "0.0.1",
   "scripts": {
-    "chain": "starknet-devnet --seed 0",
+    "chain": "starknet-devnet --seed 0 --chain-id SN_DEVNET",
     "clean": "cd contracts && scarb clean && cd ../deployments && node clear.mjs",
     "compile": "ts-node scripts-ts/compile.ts",
     "deploy": "ts-node scripts-ts/helpers/deploy-wrapper.ts",

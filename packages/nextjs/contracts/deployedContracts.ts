@@ -7,7 +7,7 @@ const deployedContracts = {
   devnet: {
     HabitTracker: {
       address:
-        "0x1e051fe5f24e31e4a21e2b9bbaa78c7805dd17065a995a41715641e7e914b05",
+        "0x48182f0c82a62180dc348614e62d2ca4e3ddb7a977a2f5fe0a9f81a051f3953",
       abi: [
         {
           type: "impl",
@@ -817,7 +817,7 @@ const deployedContracts = {
   sepolia: {
     HabitTracker: {
       address:
-        "0x35b9a6bdb02baa6d47f25c600e85f942d33d7f2397a39218c7922126f6c2ca8",
+        "0x2f7b52894597a2916401b704524d51a5909cf2f1d63cd509a340fb3ca2a755",
       abi: [
         {
           type: "impl",

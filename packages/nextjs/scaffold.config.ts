@@ -9,11 +9,8 @@ export type ScaffoldConfig = {
   autoConnectTTL: number;
 };
 
-// Detect if running in GitHub Actions environment
-const isGitHubActions = process.env.GITHUB_ACTIONS === "true" || process.env.CI === "true";
-
 const scaffoldConfig = {
-  targetNetworks: [isGitHubActions ? chains.sepolia : chains.devnet],
+  targetNetworks: [chains.sepolia, chains.devnet],
   // Only show the Burner Wallet when running on devnet
   onlyLocalBurnerWallet: false,
   // The interval at which your front-end polls the RPC servers for new data
