@@ -1,9 +1,10 @@
 import scaffoldConfig from "~~/scaffold.config";
-import { devnet, sepolia, mainnet, Chain } from "@starknet-react/chains";
+import { Chain } from "@starknet-react/chains";
+import { supportedChains } from "~~/supportedChains";
 export const chains = {
-  devnet,
-  sepolia,
-  mainnet,
+  devnet: supportedChains.devnet,
+  sepolia: supportedChains.sepolia,
+  mainnet: supportedChains.mainnet,
 };
 
 type ChainAttributes = {
