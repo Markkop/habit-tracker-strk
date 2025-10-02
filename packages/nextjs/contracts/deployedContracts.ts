@@ -7,7 +7,652 @@ const deployedContracts = {
   devnet: {
     HabitTracker: {
       address:
-        "0x4358e01d94cbd102b9ee2ca9b62861a66daebdef64c0d67b7251cd60b852159",
+        "0x4cd9e5387cc108ea6c4fdd79f46db5b3fea7809276f8343ef7fb856ce0a81d3",
+      abi: [
+        {
+          type: "impl",
+          name: "HabitTrackerImpl",
+          interface_name: "contracts::habit_tracker::IHabitTracker",
+        },
+        {
+          type: "struct",
+          name: "core::integer::u256",
+          members: [
+            {
+              name: "low",
+              type: "core::integer::u128",
+            },
+            {
+              name: "high",
+              type: "core::integer::u128",
+            },
+          ],
+        },
+        {
+          type: "struct",
+          name: "contracts::habit_tracker::UserState",
+          members: [
+            {
+              name: "deposit_balance",
+              type: "core::integer::u256",
+            },
+            {
+              name: "blocked_balance",
+              type: "core::integer::u256",
+            },
+            {
+              name: "claimable_balance",
+              type: "core::integer::u256",
+            },
+            {
+              name: "active_habit_count",
+              type: "core::integer::u32",
+            },
+          ],
+        },
+        {
+          type: "enum",
+          name: "core::bool",
+          variants: [
+            {
+              name: "False",
+              type: "()",
+            },
+            {
+              name: "True",
+              type: "()",
+            },
+          ],
+        },
+        {
+          type: "struct",
+          name: "contracts::habit_tracker::Habit",
+          members: [
+            {
+              name: "id",
+              type: "core::integer::u32",
+            },
+            {
+              name: "owner",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
+            {
+              name: "text",
+              type: "core::felt252",
+            },
+            {
+              name: "created_at_epoch",
+              type: "core::integer::u64",
+            },
+            {
+              name: "archived",
+              type: "core::bool",
+            },
+          ],
+        },
+        {
+          type: "struct",
+          name: "contracts::habit_tracker::DailyStatus",
+          members: [
+            {
+              name: "funded",
+              type: "core::bool",
+            },
+            {
+              name: "checked",
+              type: "core::bool",
+            },
+            {
+              name: "settled",
+              type: "core::bool",
+            },
+          ],
+        },
+        {
+          type: "interface",
+          name: "contracts::habit_tracker::IHabitTracker",
+          items: [
+            {
+              type: "function",
+              name: "deposit",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "withdraw_from_deposit",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "create_habit",
+              inputs: [
+                {
+                  name: "text",
+                  type: "core::felt252",
+                },
+              ],
+              outputs: [
+                {
+                  type: "core::integer::u32",
+                },
+              ],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "archive_habit",
+              inputs: [
+                {
+                  name: "habit_id",
+                  type: "core::integer::u32",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "check_in",
+              inputs: [
+                {
+                  name: "habit_id",
+                  type: "core::integer::u32",
+                },
+                {
+                  name: "epoch_id",
+                  type: "core::integer::u64",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "prepare_day",
+              inputs: [
+                {
+                  name: "epoch_id",
+                  type: "core::integer::u64",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "settle",
+              inputs: [
+                {
+                  name: "user",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+                {
+                  name: "epoch_id",
+                  type: "core::integer::u64",
+                },
+                {
+                  name: "habit_id",
+                  type: "core::integer::u32",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "settle_all",
+              inputs: [
+                {
+                  name: "user",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+                {
+                  name: "epoch_id",
+                  type: "core::integer::u64",
+                },
+                {
+                  name: "max_count",
+                  type: "core::integer::u32",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "force_settle_all",
+              inputs: [
+                {
+                  name: "user",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+                {
+                  name: "epoch_id",
+                  type: "core::integer::u64",
+                },
+                {
+                  name: "max_count",
+                  type: "core::integer::u32",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "claim",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "redeposit_from_claimable",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "get_user_state",
+              inputs: [
+                {
+                  name: "user",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+              ],
+              outputs: [
+                {
+                  type: "contracts::habit_tracker::UserState",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "get_habits",
+              inputs: [
+                {
+                  name: "user",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+              ],
+              outputs: [
+                {
+                  type: "core::array::Array::<contracts::habit_tracker::Habit>",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "get_daily_status",
+              inputs: [
+                {
+                  name: "user",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+                {
+                  name: "epoch_id",
+                  type: "core::integer::u64",
+                },
+                {
+                  name: "habit_id",
+                  type: "core::integer::u32",
+                },
+              ],
+              outputs: [
+                {
+                  type: "contracts::habit_tracker::DailyStatus",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "epoch_now",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u64",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "treasury_address",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "stake_per_day",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+          ],
+        },
+        {
+          type: "constructor",
+          name: "constructor",
+          inputs: [
+            {
+              name: "treasury_addr",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::Deposited",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::Withdrew",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::HabitCreated",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "habit_id",
+              type: "core::integer::u32",
+              kind: "data",
+            },
+            {
+              name: "text",
+              type: "core::felt252",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::HabitArchived",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "habit_id",
+              type: "core::integer::u32",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::Checked",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "habit_id",
+              type: "core::integer::u32",
+              kind: "data",
+            },
+            {
+              name: "epoch_id",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::Prepared",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "epoch_id",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+            {
+              name: "funded_count",
+              type: "core::integer::u32",
+              kind: "data",
+            },
+            {
+              name: "insufficient_count",
+              type: "core::integer::u32",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::SettledSuccess",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "habit_id",
+              type: "core::integer::u32",
+              kind: "data",
+            },
+            {
+              name: "epoch_id",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::SettledFail",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "habit_id",
+              type: "core::integer::u32",
+              kind: "data",
+            },
+            {
+              name: "epoch_id",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::Claimed",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::ReDeposited",
+          kind: "struct",
+          members: [
+            {
+              name: "user",
+              type: "core::starknet::contract_address::ContractAddress",
+              kind: "key",
+            },
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::Event",
+          kind: "enum",
+          variants: [
+            {
+              name: "Deposited",
+              type: "contracts::habit_tracker::HabitTracker::Deposited",
+              kind: "nested",
+            },
+            {
+              name: "Withdrew",
+              type: "contracts::habit_tracker::HabitTracker::Withdrew",
+              kind: "nested",
+            },
+            {
+              name: "HabitCreated",
+              type: "contracts::habit_tracker::HabitTracker::HabitCreated",
+              kind: "nested",
+            },
+            {
+              name: "HabitArchived",
+              type: "contracts::habit_tracker::HabitTracker::HabitArchived",
+              kind: "nested",
+            },
+            {
+              name: "Checked",
+              type: "contracts::habit_tracker::HabitTracker::Checked",
+              kind: "nested",
+            },
+            {
+              name: "Prepared",
+              type: "contracts::habit_tracker::HabitTracker::Prepared",
+              kind: "nested",
+            },
+            {
+              name: "SettledSuccess",
+              type: "contracts::habit_tracker::HabitTracker::SettledSuccess",
+              kind: "nested",
+            },
+            {
+              name: "SettledFail",
+              type: "contracts::habit_tracker::HabitTracker::SettledFail",
+              kind: "nested",
+            },
+            {
+              name: "Claimed",
+              type: "contracts::habit_tracker::HabitTracker::Claimed",
+              kind: "nested",
+            },
+            {
+              name: "ReDeposited",
+              type: "contracts::habit_tracker::HabitTracker::ReDeposited",
+              kind: "nested",
+            },
+          ],
+        },
+      ],
+      classHash:
+        "0x6baf1b90947d225afd01fa7d285a573d47bae566705f8f165aa0dd184cd6ce1",
+    },
+  },
+  sepolia: {
+    HabitTracker: {
+      address:
+        "0x357f2cfa7b8b688dd51b2833bcc8fa433b90a0a43ec5b9594783fa514ef0e71",
       abi: [
         {
           type: "impl",
