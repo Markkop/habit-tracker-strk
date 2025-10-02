@@ -7,7 +7,7 @@ const deployedContracts = {
   devnet: {
     HabitTracker: {
       address:
-        "0x4cd9e5387cc108ea6c4fdd79f46db5b3fea7809276f8343ef7fb856ce0a81d3",
+        "0x1e051fe5f24e31e4a21e2b9bbaa78c7805dd17065a995a41715641e7e914b05",
       abi: [
         {
           type: "impl",
@@ -105,6 +105,32 @@ const deployedContracts = {
             {
               name: "settled",
               type: "core::bool",
+            },
+          ],
+        },
+        {
+          type: "struct",
+          name: "contracts::habit_tracker::VaultState",
+          members: [
+            {
+              name: "total_assets",
+              type: "core::integer::u256",
+            },
+            {
+              name: "total_supply",
+              type: "core::integer::u256",
+            },
+            {
+              name: "total_staked",
+              type: "core::integer::u256",
+            },
+            {
+              name: "accumulated_rewards",
+              type: "core::integer::u256",
+            },
+            {
+              name: "exchange_rate",
+              type: "core::integer::u256",
             },
           ],
         },
@@ -278,6 +304,37 @@ const deployedContracts = {
             },
             {
               type: "function",
+              name: "sync_staking_rewards",
+              inputs: [],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "stake_to_protocol",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "unstake_from_protocol",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
               name: "get_user_state",
               inputs: [
                 {
@@ -365,6 +422,39 @@ const deployedContracts = {
               ],
               state_mutability: "view",
             },
+            {
+              type: "function",
+              name: "get_vault_state",
+              inputs: [],
+              outputs: [
+                {
+                  type: "contracts::habit_tracker::VaultState",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "accumulated_rewards",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "total_staked",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
           ],
         },
         {
@@ -373,6 +463,10 @@ const deployedContracts = {
           inputs: [
             {
               name: "treasury_addr",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
+            {
+              name: "staking_contract_addr",
               type: "core::starknet::contract_address::ContractAddress",
             },
           ],
@@ -589,6 +683,62 @@ const deployedContracts = {
         },
         {
           type: "event",
+          name: "contracts::habit_tracker::HabitTracker::StakedToProtocol",
+          kind: "struct",
+          members: [
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "epoch",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::UnstakedFromProtocol",
+          kind: "struct",
+          members: [
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "epoch",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::RewardsAccrued",
+          kind: "struct",
+          members: [
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "new_total_assets",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "epoch",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
           name: "contracts::habit_tracker::HabitTracker::Event",
           kind: "enum",
           variants: [
@@ -640,6 +790,21 @@ const deployedContracts = {
             {
               name: "ReDeposited",
               type: "contracts::habit_tracker::HabitTracker::ReDeposited",
+              kind: "nested",
+            },
+            {
+              name: "StakedToProtocol",
+              type: "contracts::habit_tracker::HabitTracker::StakedToProtocol",
+              kind: "nested",
+            },
+            {
+              name: "UnstakedFromProtocol",
+              type: "contracts::habit_tracker::HabitTracker::UnstakedFromProtocol",
+              kind: "nested",
+            },
+            {
+              name: "RewardsAccrued",
+              type: "contracts::habit_tracker::HabitTracker::RewardsAccrued",
               kind: "nested",
             },
           ],
@@ -754,6 +919,32 @@ const deployedContracts = {
           ],
         },
         {
+          type: "struct",
+          name: "contracts::habit_tracker::VaultState",
+          members: [
+            {
+              name: "total_assets",
+              type: "core::integer::u256",
+            },
+            {
+              name: "total_supply",
+              type: "core::integer::u256",
+            },
+            {
+              name: "total_staked",
+              type: "core::integer::u256",
+            },
+            {
+              name: "accumulated_rewards",
+              type: "core::integer::u256",
+            },
+            {
+              name: "exchange_rate",
+              type: "core::integer::u256",
+            },
+          ],
+        },
+        {
           type: "interface",
           name: "contracts::habit_tracker::IHabitTracker",
           items: [
@@ -923,6 +1114,37 @@ const deployedContracts = {
             },
             {
               type: "function",
+              name: "sync_staking_rewards",
+              inputs: [],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "stake_to_protocol",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "unstake_from_protocol",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
               name: "get_user_state",
               inputs: [
                 {
@@ -1010,6 +1232,39 @@ const deployedContracts = {
               ],
               state_mutability: "view",
             },
+            {
+              type: "function",
+              name: "get_vault_state",
+              inputs: [],
+              outputs: [
+                {
+                  type: "contracts::habit_tracker::VaultState",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "accumulated_rewards",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "total_staked",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
           ],
         },
         {
@@ -1018,6 +1273,10 @@ const deployedContracts = {
           inputs: [
             {
               name: "treasury_addr",
+              type: "core::starknet::contract_address::ContractAddress",
+            },
+            {
+              name: "staking_contract_addr",
               type: "core::starknet::contract_address::ContractAddress",
             },
           ],
@@ -1234,6 +1493,62 @@ const deployedContracts = {
         },
         {
           type: "event",
+          name: "contracts::habit_tracker::HabitTracker::StakedToProtocol",
+          kind: "struct",
+          members: [
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "epoch",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::UnstakedFromProtocol",
+          kind: "struct",
+          members: [
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "epoch",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::habit_tracker::HabitTracker::RewardsAccrued",
+          kind: "struct",
+          members: [
+            {
+              name: "amount",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "new_total_assets",
+              type: "core::integer::u256",
+              kind: "data",
+            },
+            {
+              name: "epoch",
+              type: "core::integer::u64",
+              kind: "data",
+            },
+          ],
+        },
+        {
+          type: "event",
           name: "contracts::habit_tracker::HabitTracker::Event",
           kind: "enum",
           variants: [
@@ -1285,6 +1600,21 @@ const deployedContracts = {
             {
               name: "ReDeposited",
               type: "contracts::habit_tracker::HabitTracker::ReDeposited",
+              kind: "nested",
+            },
+            {
+              name: "StakedToProtocol",
+              type: "contracts::habit_tracker::HabitTracker::StakedToProtocol",
+              kind: "nested",
+            },
+            {
+              name: "UnstakedFromProtocol",
+              type: "contracts::habit_tracker::HabitTracker::UnstakedFromProtocol",
+              kind: "nested",
+            },
+            {
+              name: "RewardsAccrued",
+              type: "contracts::habit_tracker::HabitTracker::RewardsAccrued",
               kind: "nested",
             },
           ],

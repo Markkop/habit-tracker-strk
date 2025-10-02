@@ -7,6 +7,7 @@ import { useScaffoldReadContract } from "~~/hooks/scaffold-stark";
 import { Balance, Address } from "~~/components/scaffold-stark";
 import { CustomConnectButton } from "~~/components/scaffold-stark/CustomConnectButton";
 import { VaultStats } from "~~/components/VaultStats";
+import { StakingControls } from "~~/components/habits/StakingControls";
 
 // Individual Habit Card Component with full status
 const HabitCard = ({
@@ -316,6 +317,11 @@ export default function HabitTrackerPage() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4">Vault Statistics</h2>
           <VaultStats />
+        </div>
+
+        {/* Staking Controls */}
+        <div className="mb-8">
+          <StakingControls />
         </div>
 
         <div className="divider"></div>
