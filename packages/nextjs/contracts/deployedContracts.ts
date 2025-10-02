@@ -817,7 +817,7 @@ const deployedContracts = {
   sepolia: {
     HabitTracker: {
       address:
-        "0x357f2cfa7b8b688dd51b2833bcc8fa433b90a0a43ec5b9594783fa514ef0e71",
+        "0x35b9a6bdb02baa6d47f25c600e85f942d33d7f2397a39218c7922126f6c2ca8",
       abi: [
         {
           type: "impl",
@@ -1621,7 +1621,7 @@ const deployedContracts = {
         },
       ],
       classHash:
-        "0x2a5604b70988ce1c78acbf3fee29ea418f2359be5bf755201ce94b0e1002ee9",
+        "0x6baf1b90947d225afd01fa7d285a573d47bae566705f8f165aa0dd184cd6ce1",
     },
   },
 } as const;
