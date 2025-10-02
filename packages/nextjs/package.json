@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "build:github-pages": "NEXT_PUBLIC_BASE_PATH=/$npm_package_name next build",
     "check-types": "tsc --noEmit --incremental",
     "coverage": "vitest run --coverage",
     "dev": "next dev",

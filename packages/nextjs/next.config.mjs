@@ -10,11 +10,15 @@ const withPWA = nextPWA({
 });
 
 const nextConfig = {
+  output: "export", // Enable static exports for GitHub Pages
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || "", // Support GitHub Pages repo path
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || "", // Ensure assets load correctly
   reactStrictMode: true,
   logging: {
     incomingRequests: false,
   },
   images: {
+    unoptimized: true, // Required for static export
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {

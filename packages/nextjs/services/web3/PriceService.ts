@@ -2,9 +2,16 @@ import scaffoldConfig from "~~/scaffold.config";
 
 export const fetchPrice = async (retries = 3): Promise<number> => {
   let attempt = 0;
+  const apiUrl =
+    "https://api.coingecko.com/api/v3/simple/price?ids=starknet&vs_currencies=usd";
+  
   while (attempt < retries) {
     try {
-      const response = await fetch(`/api/price`);
+      // Call CoinGecko API directly (required for static export/GitHub Pages)
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error(`coingecko response status: ${response.status}`);
+      }
       const data = await response.json();
       return data.starknet.usd;
     } catch (error) {
