@@ -1,9 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  # Temporarily disabled - static export doesn't support dynamic routes in block explorer
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 permissions:
