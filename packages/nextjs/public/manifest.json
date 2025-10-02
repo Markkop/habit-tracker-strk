@@ -1,7 +1,7 @@
 {
-  "name": "Scaffold Stark",
-  "short_name": "Scaffold",
-  "description": "Fast track your starknet journey",
+  "name": "Habit Tracker STRK",
+  "short_name": "Habits",
+  "description": "Stake STRK tokens on daily habits. Check in before midnight UTC to win your stake back!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -21,28 +21,18 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["web3", "blockchain", "starknet"],
-  "screenshots": [
-    {
-      "src": "/screenshots/home.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "platform": "wide",
-      "label": "Home screen of Scaffold Stark"
-    }
-  ],
+  "categories": ["web3", "blockchain", "starknet", "productivity", "lifestyle"],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "url": "/dashboard",
-      "description": "View your dashboard"
+      "name": "My Habits",
+      "url": "/habits",
+      "description": "View and manage your habits"
     },
     {
-      "name": "Contracts",
-      "url": "/contracts",
-      "description": "View your contracts"
+      "name": "Configure",
+      "url": "/configure",
+      "description": "Configure your settings"
     }
   ],
-  "prefer_related_applications": false,
-  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7"
+  "prefer_related_applications": false
 }
