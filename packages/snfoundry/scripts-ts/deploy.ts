@@ -45,13 +45,6 @@ import { green } from "./helpers/colorize-log";
  * @returns {Promise<void>}
  */
 const deployScript = async (): Promise<void> => {
-  await deployContract({
-    contract: "YourContract",
-    constructorArgs: {
-      owner: deployer.address,
-    },
-  });
-
   // Deploy HabitTracker contract with treasury address (using deployer as treasury)
   await deployContract({
     contract: "HabitTracker",
