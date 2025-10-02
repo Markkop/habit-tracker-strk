@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ScaffoldStarkAppWithProviders } from "~~/components/ScaffoldStarkAppWithProviders";
 import "~~/styles/globals.css";
 import { ThemeProvider } from "~~/components/ThemeProvider";
+import { RedirectHandler } from "./redirect-handler";
 
 export const metadata: Metadata = {
   title: "Scaffold-Stark",
@@ -15,6 +16,7 @@ const ScaffoldStarkApp = ({ children }: { children: React.ReactNode }) => {
       <body suppressHydrationWarning>
         <ThemeProvider enableSystem>
           <ScaffoldStarkAppWithProviders>
+            <RedirectHandler />
             {children}
           </ScaffoldStarkAppWithProviders>
         </ThemeProvider>

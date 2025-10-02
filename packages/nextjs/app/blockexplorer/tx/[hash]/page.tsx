@@ -7,9 +7,12 @@ interface TransactionDetailsProps {
   }>;
 }
 
-// Required for static export - returns empty array for client-side routing
+// Generate at least one sample path so Next.js builds the page structure
+// The 404.html fallback will handle all other transaction hashes client-side
 export async function generateStaticParams() {
-  return [];
+  return [
+    { hash: "0x0" }, // Placeholder - all real hashes handled by 404 fallback
+  ];
 }
 
 export default async function TransactionDetails({ params }: TransactionDetailsProps) {

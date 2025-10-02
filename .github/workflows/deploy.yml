@@ -1,13 +1,12 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Disabled: Dynamic routes with empty generateStaticParams() don't work with static export
-  # Next.js requires pre-rendered paths for static export, but our block explorer
-  # uses purely client-side dynamic routes that can't be pre-generated
-  # See: https://nextjs.org/docs/app/building-your-application/deploying/static-exports
-  # push:
-  #   branches:
-  #     - main
+  # Push trigger enabled: Using spa-github-pages approach for dynamic routes
+  # Dynamic routes use generateStaticParams() with placeholder values
+  # 404.html redirects unknown paths to /?/path, which the redirect-handler then processes
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:

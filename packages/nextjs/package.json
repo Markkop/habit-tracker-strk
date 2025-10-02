@@ -3,7 +3,8 @@
   "version": "0.1.2",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build && npm run postbuild",
+    "postbuild": "shx cp public/404.html out/404.html",
     "build:github-pages": "NEXT_PUBLIC_BASE_PATH=/$npm_package_name next build",
     "check-types": "tsc --noEmit --incremental",
     "coverage": "vitest run --coverage",
