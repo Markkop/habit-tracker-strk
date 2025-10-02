@@ -32,8 +32,6 @@ const mainnetFork = {
 
 const devnet = {
   ...chains.devnet,
-  id: BigInt("0x534e5f4c4f43414c"), // SN_LOCAL in hex - unique ID for local devnet
-  network: "devnet",
   rpcUrls: {
     default: {
       http: [],
