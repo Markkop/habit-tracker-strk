@@ -25,6 +25,11 @@ interface AddressDetailsProps {
   }>;
 }
 
+// Generate empty static params for client-side rendering
+export function generateStaticParams() {
+  return [];
+}
+
 export default function AddressDetails({ params }: AddressDetailsProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");

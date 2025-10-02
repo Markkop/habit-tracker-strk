@@ -30,6 +30,11 @@ interface TransactionDetailsProps {
   }>;
 }
 
+// Generate empty static params for client-side rendering
+export function generateStaticParams() {
+  return [];
+}
+
 export default function TransactionDetails({
   params,
 }: TransactionDetailsProps) {
