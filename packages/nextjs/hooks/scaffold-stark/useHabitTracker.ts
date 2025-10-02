@@ -5,6 +5,7 @@ import {
   useDeployedContractInfo,
 } from "~~/hooks/scaffold-stark";
 import { useTransactor } from "~~/hooks/scaffold-stark/useTransactor";
+import { notification } from "~~/utils/scaffold-stark";
 
 // Helper function to convert felt252 to string
 const felt252ToString = (felt: bigint | number | string): string => {
@@ -196,7 +197,14 @@ export const useHabitTracker = () => {
 
   // Helper functions
   const approveSTRK = async (amount: bigint) => {
-    if (!amount || amount <= 0 || !habitTrackerAddress) return;
+    if (!amount || amount <= 0) {
+      notification.error("Please enter a valid amount");
+      return;
+    }
+    if (!habitTrackerAddress) {
+      notification.error("Contract address not found");
+      return;
+    }
     try {
       const args: [typeof habitTrackerAddress, bigint] = [
         habitTrackerAddress,
@@ -204,43 +212,56 @@ export const useHabitTracker = () => {
       ];
       await approveAsync({ args });
       refetchAllowance();
-    } catch (error) {
+      notification.success("STRK approval successful!");
+    } catch (error: any) {
       console.error("STRK approval failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const deposit = async (amount: bigint) => {
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0) {
+      notification.error("Please enter a valid amount");
+      return;
+    }
     try {
       await depositAsync({ args: [amount] });
       refetchUserState();
-    } catch (error) {
+      notification.success("Deposit successful!");
+    } catch (error: any) {
       console.error("Deposit failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const withdraw = async (amount: bigint) => {
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0) {
+      notification.error("Please enter a valid amount");
+      return;
+    }
     try {
       await withdrawAsync({ args: [amount] });
       refetchUserState();
-    } catch (error) {
+      notification.success("Withdrawal successful!");
+    } catch (error: any) {
       console.error("Withdraw failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const createHabit = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      notification.error("Please enter a habit description");
+      return;
+    }
     try {
       await createHabitAsync({ args: [text] });
       refetchHabits();
       refetchUserState();
-    } catch (error) {
+      notification.success("Habit created successfully!");
+    } catch (error: any) {
       console.error("Create habit failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
@@ -249,36 +270,48 @@ export const useHabitTracker = () => {
       await archiveHabitAsync({ args: [habitId] });
       refetchHabits();
       refetchUserState();
-    } catch (error) {
+      notification.success("Habit archived successfully!");
+    } catch (error: any) {
       console.error("Archive habit failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const checkIn = async (habitId: number | bigint) => {
-    if (!epochNow) return;
+    if (!epochNow) {
+      notification.error("Unable to determine current epoch");
+      return;
+    }
     try {
       await checkInAsync({ args: [habitId, Number(epochNow)] });
       refetchHabits();
-    } catch (error) {
+      notification.success("Check-in successful! 🎉");
+    } catch (error: any) {
       console.error("Check-in failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const prepareDay = async () => {
-    if (!epochNow) return;
+    if (!epochNow) {
+      notification.error("Unable to determine current epoch");
+      return;
+    }
     try {
       await prepareDayAsync({ args: [Number(epochNow)] });
       refetchUserState();
-    } catch (error) {
+      notification.success("Day prepared! Your habits are funded 💪");
+    } catch (error: any) {
       console.error("Prepare day failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const settleDay = async () => {
-    if (!connectedAddress || !epochNow) return;
+    if (!connectedAddress || !epochNow) {
+      notification.error("Unable to settle - missing required data");
+      return;
+    }
     try {
       // Settle all habits for yesterday
       const yesterdayEpoch = Number(epochNow) - 1;
@@ -286,45 +319,58 @@ export const useHabitTracker = () => {
         args: [connectedAddress, yesterdayEpoch, 50], // max 50 habits
       });
       refetchUserState();
-    } catch (error) {
+      notification.success("Yesterday's habits settled!");
+    } catch (error: any) {
       console.error("Settle day failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const forceSettleAll = async () => {
-    if (!connectedAddress || !epochNow) return;
+    if (!connectedAddress || !epochNow) {
+      notification.error("Unable to settle - missing required data");
+      return;
+    }
     try {
       // Force settle all habits for current day (for testing)
       await forceSettleAllAsync({
         args: [connectedAddress, Number(epochNow), 50], // max 50 habits, current epoch
       });
       refetchUserState();
-    } catch (error) {
+      notification.success("All habits force settled!");
+    } catch (error: any) {
       console.error("Force settle failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const claim = async (amount: bigint) => {
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0) {
+      notification.error("Please enter a valid amount");
+      return;
+    }
     try {
       await claimAsync({ args: [amount] });
       refetchUserState();
-    } catch (error) {
+      notification.success("Claim successful! 💰");
+    } catch (error: any) {
       console.error("Claim failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
   const redeposit = async (amount: bigint) => {
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0) {
+      notification.error("Please enter a valid amount");
+      return;
+    }
     try {
       await redepositAsync({ args: [amount] });
       refetchUserState();
-    } catch (error) {
+      notification.success("Redeposit successful!");
+    } catch (error: any) {
       console.error("Redeposit failed:", error);
-      throw error;
+      notification.error(error as any);
     }
   };
 
