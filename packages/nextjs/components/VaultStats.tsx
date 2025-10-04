@@ -2,6 +2,7 @@
 
 import { useAccount } from "@starknet-react/core";
 import { useHabitVault } from "~~/hooks/scaffold-stark/useHabitVault";
+import { CustomConnectButton } from "./scaffold-stark/CustomConnectButton";
 
 /**
  * Component to display Habit Tracker Vault statistics
@@ -20,27 +21,6 @@ export const VaultStats = () => {
     return (Number(whole) + fractional).toFixed(maxDecimals);
   };
 
-  if (!address) {
-    return (
-      <div className="alert alert-info">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          className="stroke-current shrink-0 w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          ></path>
-        </svg>
-        <span>Connect your wallet to view vault statistics</span>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="stats shadow w-full">
@@ -56,16 +36,18 @@ export const VaultStats = () => {
 
   return (
     <div className="stats stats-vertical lg:stats-horizontal shadow w-full">
-      <div className="stat">
-        <div className="stat-figure text-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-          </svg>
+      {address && (
+        <div className="stat">
+          <div className="stat-figure text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
+          </div>
+          <div className="stat-title">Your Balance</div>
+          <div className="stat-value text-primary">{formatAmount(habitBalance)} STRK</div>
+          <div className="stat-desc">Deposited in vault</div>
         </div>
-        <div className="stat-title">Your Balance</div>
-        <div className="stat-value text-primary">{formatAmount(habitBalance)} STRK</div>
-        <div className="stat-desc">Deposited in vault</div>
-      </div>
+      )}
 
       <div className="stat">
         <div className="stat-figure text-secondary">

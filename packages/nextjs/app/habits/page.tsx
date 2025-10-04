@@ -287,24 +287,7 @@ export default function HabitTrackerPage() {
     ? userState.deposit_balance - userState.blocked_balance
     : 0n;
 
-  if (!connectedAddress) {
-    return (
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center mb-8">
-            <span className="block text-4xl font-bold">Habit Tracker</span>
-            <span className="block text-2xl mb-2">Starknet Edition</span>
-          </h1>
-          <p className="text-center text-lg">
-            Connect your wallet to start tracking habits with STRK stakes
-          </p>
-        </div>
-        <div className="flex justify-center mt-8">
-          <CustomConnectButton />
-        </div>
-      </div>
-    );
-  }
+  const isConnected = !!connectedAddress;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -312,6 +295,35 @@ export default function HabitTrackerPage() {
         <h1 className="text-5xl font-bold text-center mb-8">
           🎯 Habit Tracker
         </h1>
+
+        {/* Connection Banner */}
+        {!isConnected && (
+          <div className="alert alert-info mb-8">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="stroke-current shrink-0 w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <div className="flex-1">
+              <h3 className="font-bold">Welcome to Habit Tracker!</h3>
+              <div className="text-sm">
+                You&apos;re viewing the app in read-only mode. Connect your wallet to create habits, 
+                check-in daily, and manage your stakes.
+              </div>
+            </div>
+            <div>
+              <CustomConnectButton />
+            </div>
+          </div>
+        )}
 
         {/* Vault Statistics Dashboard */}
         <div className="mb-8">
@@ -327,7 +339,8 @@ export default function HabitTrackerPage() {
         <div className="divider"></div>
 
         {/* Treasury Info Banner */}
-        {treasuryAddress &&
+        {isConnected &&
+          treasuryAddress &&
           typeof treasuryAddress === "string" &&
           treasuryAddress.startsWith("0x") && (
             <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-6 mb-8 text-white">
@@ -350,38 +363,50 @@ export default function HabitTrackerPage() {
             </div>
           )}
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {/* Summary Cards - User-specific */}
+        <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 ${!isConnected ? "opacity-60" : ""}`}>
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow-lg">
             <div className="text-sm opacity-90 mb-1">Total Deposit</div>
             <div className="text-3xl font-bold mb-2">
-              {userState ? formatSTRK(userState.deposit_balance) : "0.00"}
+              {isConnected && userState ? formatSTRK(userState.deposit_balance) : "0.00"}
             </div>
             <div className="text-xs">STRK</div>
+            {!isConnected && (
+              <div className="text-xs mt-2 opacity-75">Connect to view</div>
+            )}
           </div>
 
           <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6 shadow-lg">
             <div className="text-sm opacity-90 mb-1">Available Balance</div>
             <div className="text-3xl font-bold mb-2">
-              {formatSTRK(availableBalance)}
+              {isConnected ? formatSTRK(availableBalance) : "0.00"}
             </div>
             <div className="text-xs">STRK (unlocked)</div>
+            {!isConnected && (
+              <div className="text-xs mt-2 opacity-75">Connect to view</div>
+            )}
           </div>
 
           <div className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-lg p-6 shadow-lg">
             <div className="text-sm opacity-90 mb-1">Blocked (Staked)</div>
             <div className="text-3xl font-bold mb-2">
-              {userState ? formatSTRK(userState.blocked_balance) : "0.00"}
+              {isConnected && userState ? formatSTRK(userState.blocked_balance) : "0.00"}
             </div>
             <div className="text-xs">STRK (locked)</div>
+            {!isConnected && (
+              <div className="text-xs mt-2 opacity-75">Connect to view</div>
+            )}
           </div>
 
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-6 shadow-lg">
             <div className="text-sm opacity-90 mb-1">Claimable Rewards</div>
             <div className="text-3xl font-bold mb-2">
-              {userState ? formatSTRK(userState.claimable_balance) : "0.00"}
+              {isConnected && userState ? formatSTRK(userState.claimable_balance) : "0.00"}
             </div>
             <div className="text-xs">STRK</div>
+            {!isConnected && (
+              <div className="text-xs mt-2 opacity-75">Connect to view</div>
+            )}
           </div>
         </div>
 
@@ -397,30 +422,62 @@ export default function HabitTrackerPage() {
                     {epochNow || "..."}
                   </div>
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-600">
-                    Active Habits
-                  </div>
-                  <div className="text-2xl font-bold text-success">
-                    {userState?.active_habit_count || 0}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-600">
-                    Stake per Habit
-                  </div>
-                  <div className="text-2xl font-bold">
-                    {stakePerDay ? formatSTRK(stakePerDay) : "10.00"}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-600">
-                    Total at Risk
-                  </div>
-                  <div className="text-2xl font-bold text-warning">
-                    {formatSTRK(totalFundedValue)}
-                  </div>
-                </div>
+                {isConnected && (
+                  <>
+                    <div>
+                      <div className="font-semibold text-gray-600">
+                        Active Habits
+                      </div>
+                      <div className="text-2xl font-bold text-success">
+                        {userState?.active_habit_count || 0}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-600">
+                        Stake per Habit
+                      </div>
+                      <div className="text-2xl font-bold">
+                        {stakePerDay ? formatSTRK(stakePerDay) : "10.00"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-600">
+                        Total at Risk
+                      </div>
+                      <div className="text-2xl font-bold text-warning">
+                        {formatSTRK(totalFundedValue)}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {!isConnected && (
+                  <>
+                    <div>
+                      <div className="font-semibold text-gray-600">
+                        Default Stake
+                      </div>
+                      <div className="text-2xl font-bold">
+                        10.00
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-600">
+                        Time Zone
+                      </div>
+                      <div className="text-xl font-bold">
+                        UTC
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-600">
+                        Check-in Window
+                      </div>
+                      <div className="text-xl font-bold">
+                        24 Hours
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="text-right">
@@ -440,48 +497,54 @@ export default function HabitTrackerPage() {
           {/* Day Prepared Status */}
           <div
             className={`p-4 rounded-lg mb-4 ${
-              dayPrepared
+              isConnected && dayPrepared
                 ? "bg-success text-success-content"
                 : "bg-warning text-warning-content"
-            }`}
+            } ${!isConnected ? "opacity-60" : ""}`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{dayPrepared ? "✓" : "⚠"}</span>
+                <span className="text-3xl">{isConnected && dayPrepared ? "✓" : "⚠"}</span>
                 <div>
                   <div className="font-bold text-lg">
-                    {dayPrepared
+                    {isConnected && dayPrepared
                       ? "Day Prepared - All habits funded!"
-                      : "Day Not Prepared - Click to fund your habits"}
+                      : !isConnected
+                        ? "Day Preparation - Connect to prepare"
+                        : "Day Not Prepared - Click to fund your habits"}
                   </div>
                   <div className="text-sm opacity-90">
-                    {dayPrepared
+                    {isConnected && dayPrepared
                       ? "Your active habits are funded and ready for check-ins"
-                      : "You need to prepare the day to fund your active habits"}
+                      : !isConnected
+                        ? "Prepare your day to fund all active habits"
+                        : "You need to prepare the day to fund your active habits"}
                   </div>
                 </div>
               </div>
               <button
-                className={`btn btn-lg ${dayPrepared ? "btn-success" : "btn-warning"}`}
+                className={`btn btn-lg ${isConnected && dayPrepared ? "btn-success" : "btn-warning"}`}
                 onClick={prepareDay}
+                disabled={!isConnected}
               >
-                {dayPrepared ? "✓ Prepared" : "Prepare Day"}
+                {isConnected && dayPrepared ? "✓ Prepared" : "Prepare Day"}
               </button>
             </div>
           </div>
 
           {/* Settlement Actions */}
-          <div className="flex gap-4">
+          <div className={`flex gap-4 ${!isConnected ? "opacity-60" : ""}`}>
             <button
               className="btn btn-outline btn-info flex-1"
               onClick={settleDay}
-              disabled={!canSettle()}
+              disabled={!isConnected || !canSettle()}
             >
               Settle Yesterday
             </button>
             <button
               className="btn btn-outline btn-error"
               onClick={forceSettleAll}
+              disabled={!isConnected}
             >
               ⚡ Force Settle (Testing)
             </button>
@@ -489,7 +552,7 @@ export default function HabitTrackerPage() {
         </div>
 
         {/* Wallet Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${!isConnected ? "opacity-60" : ""}`}>
           {/* Approve & Deposit */}
           <div className="bg-base-200 rounded-lg p-6">
             <h3 className="text-xl font-bold mb-4">💰 Manage Deposit</h3>
@@ -498,7 +561,7 @@ export default function HabitTrackerPage() {
             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded mb-4">
               <div className="text-sm font-semibold mb-2 text-yellow-800">
                 STRK Allowance:{" "}
-                {strkAllowance ? formatSTRK(strkAllowance) : "0.00"} STRK
+                {isConnected && strkAllowance ? formatSTRK(strkAllowance) : "0.00"} STRK
               </div>
               <div className="flex gap-2">
                 <input
@@ -507,13 +570,14 @@ export default function HabitTrackerPage() {
                   className="input input-bordered flex-1"
                   value={approveAmount}
                   onChange={(e) => setApproveAmount(e.target.value)}
+                  disabled={!isConnected}
                 />
                 <button
                   className="btn btn-warning"
                   onClick={() =>
                     approveSTRK(BigInt(parseFloat(approveAmount || "0") * 1e18))
                   }
-                  disabled={!approveAmount || parseFloat(approveAmount) <= 0}
+                  disabled={!isConnected || !approveAmount || parseFloat(approveAmount) <= 0}
                 >
                   Approve
                 </button>
@@ -532,13 +596,14 @@ export default function HabitTrackerPage() {
                   className="input input-bordered flex-1"
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
+                  disabled={!isConnected}
                 />
                 <button
                   className="btn btn-primary"
                   onClick={() =>
                     deposit(BigInt(parseFloat(depositAmount || "0") * 1e18))
                   }
-                  disabled={!depositAmount}
+                  disabled={!isConnected || !depositAmount}
                 >
                   Deposit
                 </button>
@@ -558,11 +623,12 @@ export default function HabitTrackerPage() {
                   className="input input-bordered w-full pr-16"
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
+                  disabled={!isConnected}
                 />
                 <button
                   className="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
                   onClick={() => setWithdrawAmount(formatSTRK(availableBalance))}
-                  disabled={availableBalance <= 0n}
+                  disabled={!isConnected || availableBalance <= 0n}
                 >
                   Max
                 </button>
@@ -572,7 +638,7 @@ export default function HabitTrackerPage() {
                 onClick={() =>
                   withdraw(BigInt(parseFloat(withdrawAmount || "0") * 1e18))
                 }
-                disabled={!withdrawAmount}
+                disabled={!isConnected || !withdrawAmount}
               >
                 Withdraw
               </button>
@@ -596,11 +662,12 @@ export default function HabitTrackerPage() {
                   className="input input-bordered w-full pr-16"
                   value={claimAmount}
                   onChange={(e) => setClaimAmount(e.target.value)}
+                  disabled={!isConnected}
                 />
                 <button
                   className="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
                   onClick={() => setClaimAmount(formatSTRK(userState?.claimable_balance || 0n))}
-                  disabled={!userState || userState.claimable_balance <= 0n}
+                  disabled={!isConnected || !userState || userState.claimable_balance <= 0n}
                 >
                   Max
                 </button>
@@ -608,7 +675,7 @@ export default function HabitTrackerPage() {
               <button
                 className="btn btn-success"
                 onClick={() => claim(BigInt(parseFloat(claimAmount || "0") * 1e18))}
-                disabled={!claimAmount}
+                disabled={!isConnected || !claimAmount}
               >
                 Claim
               </button>
@@ -627,11 +694,12 @@ export default function HabitTrackerPage() {
                   className="input input-bordered w-full pr-16"
                   value={redepositAmount}
                   onChange={(e) => setRedepositAmount(e.target.value)}
+                  disabled={!isConnected}
                 />
                 <button
                   className="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
                   onClick={() => setRedepositAmount(formatSTRK(userState?.claimable_balance || 0n))}
-                  disabled={!userState || userState.claimable_balance <= 0n}
+                  disabled={!isConnected || !userState || userState.claimable_balance <= 0n}
                 >
                   Max
                 </button>
@@ -641,7 +709,7 @@ export default function HabitTrackerPage() {
                 onClick={() =>
                   redeposit(BigInt(parseFloat(redepositAmount || "0") * 1e18))
                 }
-                disabled={!redepositAmount}
+                disabled={!isConnected || !redepositAmount}
               >
                 Redeposit
               </button>
@@ -652,10 +720,37 @@ export default function HabitTrackerPage() {
 
         {/* Habits Section */}
         <div className="bg-base-200 rounded-lg p-6 mb-8">
-          <h2 className="text-3xl font-bold mb-6">📋 Your Habits</h2>
+          <h2 className="text-3xl font-bold mb-6">📋 {isConnected ? "Your Habits" : "Habit Tracking"}</h2>
+
+          {!isConnected && (
+            <div className="mb-6 p-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg">
+              <h3 className="text-2xl font-bold mb-4">🚀 How Habit Tracking Works</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="bg-white/10 p-4 rounded-lg">
+                  <div className="font-bold mb-2">1️⃣ Create Habits</div>
+                  <p>Define the habits you want to build and track daily.</p>
+                </div>
+                <div className="bg-white/10 p-4 rounded-lg">
+                  <div className="font-bold mb-2">2️⃣ Stake STRK</div>
+                  <p>Put STRK on the line for each habit to stay accountable.</p>
+                </div>
+                <div className="bg-white/10 p-4 rounded-lg">
+                  <div className="font-bold mb-2">3️⃣ Check-In Daily</div>
+                  <p>Mark your habits as complete each day before midnight UTC.</p>
+                </div>
+                <div className="bg-white/10 p-4 rounded-lg">
+                  <div className="font-bold mb-2">4️⃣ Stay Consistent</div>
+                  <p>Miss a day? Your stake gets slashed to the treasury!</p>
+                </div>
+              </div>
+              <div className="mt-4 text-center">
+                <CustomConnectButton />
+              </div>
+            </div>
+          )}
 
           {/* Create Habit */}
-          <div className="mb-6 p-4 bg-success/10 rounded-lg">
+          <div className={`mb-6 p-4 bg-success/10 rounded-lg ${!isConnected ? "opacity-60" : ""}`}>
             <h3 className="text-lg font-semibold mb-3">➕ Create New Habit</h3>
             <div className="flex gap-2">
               <input
@@ -665,6 +760,7 @@ export default function HabitTrackerPage() {
                 value={newHabitText}
                 onChange={(e) => setNewHabitText(e.target.value)}
                 maxLength={100}
+                disabled={!isConnected}
               />
               <button
                 className="btn btn-success"
@@ -672,36 +768,128 @@ export default function HabitTrackerPage() {
                   createHabit(newHabitText);
                   setNewHabitText("");
                 }}
-                disabled={!newHabitText.trim()}
+                disabled={!isConnected || !newHabitText.trim()}
               >
                 Create Habit
               </button>
             </div>
-          </div>
-
-          {/* Habits List */}
-          <div className="space-y-4">
-            {habits?.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                epochNow={epochNow}
-                stakePerDay={stakePerDay}
-                onCheckIn={checkIn}
-                onArchive={archiveHabit}
-                connectedAddress={connectedAddress}
-              />
-            ))}
-            {(!habits || habits.length === 0) && (
-              <div className="text-center py-12 text-gray-500">
-                <div className="text-6xl mb-4">🎯</div>
-                <div className="text-xl font-semibold mb-2">
-                  No habits yet!
-                </div>
-                <div>Create your first habit above to get started</div>
+            {!isConnected && (
+              <div className="text-sm mt-2 text-center text-gray-600">
+                Connect your wallet to create habits
               </div>
             )}
           </div>
+
+          {/* Habits List */}
+          {isConnected && (
+            <div className="space-y-4">
+              {habits?.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  epochNow={epochNow}
+                  stakePerDay={stakePerDay}
+                  onCheckIn={checkIn}
+                  onArchive={archiveHabit}
+                  connectedAddress={connectedAddress}
+                />
+              ))}
+              {(!habits || habits.length === 0) && (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">🎯</div>
+                  <div className="text-xl font-semibold mb-2">
+                    No habits yet!
+                  </div>
+                  <div>Create your first habit above to get started</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Demo/Example view for non-connected users */}
+          {!isConnected && (
+            <div className="space-y-4 opacity-60">
+              {/* Example Habit Card */}
+              <div className="bg-base-100 rounded-lg p-6 border-2 border-success">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl font-bold text-primary">#1</span>
+                      <span className="text-xl font-semibold">
+                        Exercise for 30 minutes
+                      </span>
+                      <span className="badge badge-success badge-lg">Active</span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Example habit - Connect wallet to create your own
+                    </div>
+                  </div>
+
+                  {/* Action Buttons - Disabled */}
+                  <div className="flex gap-2">
+                    <button className="btn btn-primary btn-lg" disabled>
+                      ✓ Check In
+                    </button>
+                    <button className="btn btn-outline btn-error" disabled>
+                      Archive
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
+                  <div className="p-3 rounded bg-success/20">
+                    <div className="text-xs font-semibold mb-1 text-gray-600">
+                      TODAY - Funded
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">✓</span>
+                      <span className="text-sm font-semibold">10.00 STRK</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded bg-base-200">
+                    <div className="text-xs font-semibold mb-1 text-gray-600">
+                      TODAY - Checked In
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">○</span>
+                      <span className="text-sm font-semibold">Pending</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded bg-info/20">
+                    <div className="text-xs font-semibold mb-1 text-gray-600">
+                      YESTERDAY - Funded
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">✓</span>
+                      <span className="text-xs">Was Funded</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded bg-success/20">
+                    <div className="text-xs font-semibold mb-1 text-gray-600">
+                      YESTERDAY - Settled
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">✓</span>
+                      <span className="text-xs font-semibold">Success</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-4">🔐</div>
+                <div className="text-xl font-semibold mb-2">
+                  Connect your wallet to view and manage your habits
+                </div>
+                <div className="mt-4">
+                  <CustomConnectButton />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

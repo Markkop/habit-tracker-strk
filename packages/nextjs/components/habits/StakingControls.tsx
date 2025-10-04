@@ -75,15 +75,30 @@ export const StakingControls = () => {
     }
   };
 
-  if (!address) {
-    return null;
-  }
-
   return (
     <div className="bg-base-200 rounded-lg p-6">
       <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
         <span className="text-2xl">🏦</span> Staking Controls
       </h3>
+
+      {!address && (
+        <div className="alert alert-warning mb-6">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <span>Connect your wallet to use staking controls</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Current Staking Stats */}
@@ -128,13 +143,13 @@ export const StakingControls = () => {
               className="input input-bordered flex-1"
               value={stakeAmount}
               onChange={(e) => setStakeAmount(e.target.value)}
-              disabled={isStaking}
+              disabled={!address || isStaking}
             />
           </div>
           <button
             className="btn btn-accent w-full mt-2"
             onClick={handleStake}
-            disabled={!stakeAmount || isStaking || parseFloat(stakeAmount) <= 0}
+            disabled={!address || !stakeAmount || isStaking || parseFloat(stakeAmount) <= 0}
           >
             {isStaking ? (
               <>
@@ -160,12 +175,12 @@ export const StakingControls = () => {
                 className="input input-bordered w-full pr-16"
                 value={unstakeAmount}
                 onChange={(e) => setUnstakeAmount(e.target.value)}
-                disabled={isUnstaking}
+                disabled={!address || isUnstaking}
               />
               <button
                 className="btn btn-xs btn-ghost absolute right-2 top-1/2 -translate-y-1/2"
                 onClick={() => setUnstakeAmount(formatSTRK(totalStaked || 0n))}
-                disabled={!totalStaked || totalStaked <= 0n}
+                disabled={!address || !totalStaked || totalStaked <= 0n}
               >
                 Max
               </button>
@@ -174,7 +189,7 @@ export const StakingControls = () => {
           <button
             className="btn btn-warning w-full mt-2"
             onClick={handleUnstake}
-            disabled={!unstakeAmount || isUnstaking || parseFloat(unstakeAmount) <= 0}
+            disabled={!address || !unstakeAmount || isUnstaking || parseFloat(unstakeAmount) <= 0}
           >
             {isUnstaking ? (
               <>
@@ -200,7 +215,7 @@ export const StakingControls = () => {
           <button
             className="btn btn-success w-full"
             onClick={handleSyncRewards}
-            disabled={isSyncing}
+            disabled={!address || isSyncing}
           >
             {isSyncing ? (
               <>

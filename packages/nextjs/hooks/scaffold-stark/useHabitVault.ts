@@ -21,29 +21,30 @@ export const useHabitVault = (userAddress?: Address) => {
   const targetAddress = userAddress || address;
 
   // Read user's deposit balance (acts as HABIT balance in this simplified version)
-  const { data: depositBalanceData } = useScaffoldReadContract({
+  // Only fetch if we have a target address
+  const { data: depositBalanceData, isLoading: isLoadingDeposit } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "get_user_state",
-    args: targetAddress ? [targetAddress] : [undefined],
+    args: targetAddress ? [targetAddress] : [undefined as unknown as `0x${string}`],
     watch: true,
   });
 
   // Read vault state
-  const { data: vaultStateData } = useScaffoldReadContract({
+  const { data: vaultStateData, isLoading: isLoadingVault } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "get_vault_state",
     watch: true,
   });
 
   // Read accumulated rewards
-  const { data: stakingRewardsData } = useScaffoldReadContract({
+  const { data: stakingRewardsData, isLoading: isLoadingRewards } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "accumulated_rewards",
     watch: true,
   });
 
   // Read total staked
-  const { data: totalStakedData } = useScaffoldReadContract({
+  const { data: totalStakedData, isLoading: isLoadingStaked } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "total_staked",
     watch: true,
@@ -77,7 +78,7 @@ export const useHabitVault = (userAddress?: Address) => {
     totalStaked: totalStakedValue,
     stakingRewards: stakingRewardsValue,
     exchangeRate,
-    isLoading: !vaultState,
+    isLoading: isLoadingVault || isLoadingRewards || isLoadingStaked,
   };
 };
 
