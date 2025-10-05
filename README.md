@@ -12,7 +12,7 @@ By adding real consequences and immediate feedback, HabitChain closes the “mot
 ## Details
 
 - Network: Starknet Sepolia Testnet
-- Address: [0x614921ea087ce70e1a33354b7224a4a0518de286686ab90f17ba3ac152a4985](https://sepolia.voyager.online/contract/0x614921ea087ce70e1a33354b7224a4a0518de286686ab90f17ba3ac152a4985)
+- Address: [0x217aea3df1315f6969b75aaf13e08a465abf047cf4ae7f1fa44d636c950d9c5](https://sepolia.starkscan.co/contract/0x217aea3df1315f6969b75aaf13e08a465abf047cf4ae7f1fa44d636c950d9c5)
 - ABI: [https://github.com/Markkop/habit-tracker-strk/blob/main/packages/nextjs/contracts/deployedContracts.ts#L1047](https://github.com/Markkop/habit-tracker-strk/blob/main/packages/nextjs/contracts/deployedContracts.ts#L1047)
 
 ## Testing Instructions
