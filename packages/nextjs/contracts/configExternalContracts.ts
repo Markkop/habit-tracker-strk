@@ -6,6 +6,6 @@
 const configExternalContracts = {
   devnet: {},
   sepolia: {},
-};
+} as const;
 
 export default configExternalContracts;

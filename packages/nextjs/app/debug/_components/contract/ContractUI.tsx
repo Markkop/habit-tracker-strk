@@ -15,11 +15,11 @@ import { ContractVariables } from "./ContractVariables";
 import { ClassHash } from "~~/components/scaffold-stark/ClassHash";
 
 const ContractWriteMethods = dynamic(() =>
-  import("./ContractWriteMethods").then((mod) => mod.ContractWriteMethods),
+  import("./ContractWriteMethods").then((mod) => mod.ContractWriteMethods)
 );
 
 const ContractReadMethods = dynamic(() =>
-  import("./ContractReadMethods").then((mod) => mod.ContractReadMethods),
+  import("./ContractReadMethods").then((mod) => mod.ContractReadMethods)
 );
 
 type ContractUIProps = {
@@ -37,7 +37,7 @@ export const ContractUI = ({
   const [activeTab, setActiveTab] = useState("read");
   const [refreshDisplayVariables, triggerRefreshDisplayVariables] = useReducer(
     (value) => !value,
-    false,
+    false
   );
   const { targetNetwork } = useTargetNetwork();
   const {
@@ -80,7 +80,9 @@ export const ContractUI = ({
             <div className="flex">
               <div className="flex flex-col gap-1">
                 <span className="font-bold">{contractName}</span>
-                <Address address={deployedContractData.address} />
+                <Address
+                  address={deployedContractData.address as `0x${string}`}
+                />
                 <ClassHash
                   classHash={(deployedContractData as any).classHash}
                   size="xs"
@@ -88,7 +90,7 @@ export const ContractUI = ({
                 <div className="flex gap-1 items-center h-5">
                   <span className="font-bold text-sm">Balance:</span>
                   <Balance
-                    address={deployedContractData.address}
+                    address={deployedContractData.address as `0x${string}`}
                     className="px-0 h-1.5 min-h-1.5 text-network"
                   />
                 </div>

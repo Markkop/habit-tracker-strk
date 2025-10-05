@@ -16,7 +16,7 @@ const devnetUDCAddress =
 const devnetUDCClassHash =
   "0x01b2df6d8861670d4a8ca4670433b2418d78169c2947f46dc614e69f333745c8" as const;
 
-const strkAbi: Abi = [
+const strkAbi = [
   {
     type: "impl",
     name: "LockingContract",
@@ -1137,7 +1137,7 @@ const strkAbi: Abi = [
       },
     ],
   },
-];
+] as const;
 
 export const LAST_CONNECTED_TIME_LOCALSTORAGE_KEY = "lastConnectedTime";
 

@@ -14,13 +14,13 @@ const felt252ToString = (felt: bigint | number | string): string => {
     if (typeof felt === "string" && felt.length < 32 && !felt.startsWith("0x")) {
       return felt;
     }
-    
+
     const feltBigInt = typeof felt === "bigint" ? felt : BigInt(felt);
     const hex = feltBigInt.toString(16);
-    
+
     // Ensure even length
     const paddedHex = hex.length % 2 === 0 ? hex : "0" + hex;
-    
+
     let str = "";
     for (let i = 0; i < paddedHex.length; i += 2) {
       const byte = parseInt(paddedHex.substring(i, i + 2), 16);
@@ -84,16 +84,21 @@ export const useHabitTracker = () => {
   const { data: epochNow } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "epoch_now",
+    args: [],
   });
 
   const { data: stakePerDay } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "stake_per_day",
+    args: [],
+    watch: false, // Static config value - no need to poll
   });
 
   const { data: treasuryAddressRaw } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "treasury_address",
+    args: [],
+    watch: false, // Static config value - no need to poll
   });
 
   // Convert treasury address to string
@@ -107,23 +112,23 @@ export const useHabitTracker = () => {
   // STRK token contract interactions
   const { data: strkAllowance, refetch: refetchAllowance } =
     useScaffoldReadContract({
-      contractName: "STRK",
-      functionName: "allowance",
-      args: [connectedAddress, habitTrackerAddress] as const,
+      contractName: "STRK" as const,
+      functionName: "allowance" as const,
+      args: [connectedAddress, habitTrackerAddress],
       watch: true,
     });
 
   const { data: strkBalance } = useScaffoldReadContract({
-    contractName: "STRK",
-    functionName: "balance_of",
-    args: [connectedAddress] as const,
+    contractName: "STRK" as const,
+    functionName: "balance_of" as const,
+    args: [connectedAddress],
     watch: true,
   });
 
   const { data: treasuryBalance } = useScaffoldReadContract({
-    contractName: "STRK",
-    functionName: "balance_of",
-    args: [treasuryAddress] as const,
+    contractName: "STRK" as const,
+    functionName: "balance_of" as const,
+    args: [treasuryAddress],
     watch: true,
   });
 
@@ -190,8 +195,8 @@ export const useHabitTracker = () => {
 
   // STRK approve function
   const { sendAsync: approveAsync } = useScaffoldWriteContract({
-    contractName: "STRK",
-    functionName: "approve",
+    contractName: "STRK" as const,
+    functionName: "approve" as const,
     args: [undefined, undefined],
   });
 
@@ -384,9 +389,9 @@ export const useHabitTracker = () => {
   // Transform habits to convert felt252 text to readable string
   const transformedHabits = habits
     ? (habits as unknown as any[]).map((habit) => ({
-        ...habit,
-        text: felt252ToString(habit.text),
-      }))
+      ...habit,
+      text: felt252ToString(habit.text),
+    }))
     : undefined;
 
   return {

@@ -27,6 +27,7 @@ export const BalanceCards = () => {
   const { data: stakingContractData } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "staking_contract",
+    args: [],
     watch: true,
   });
 
@@ -68,6 +69,7 @@ export const BalanceCards = () => {
   const { data: contractTotalStakedData } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "total_staked",
+    args: [],
     watch: true,
   });
 
@@ -75,6 +77,7 @@ export const BalanceCards = () => {
   const { data: habitTrackerStrkBalanceData } = useScaffoldReadContract({
     contractName: "MockStaking",
     functionName: "get_reward_pool",
+    args: [],
     watch: true,
   });
 

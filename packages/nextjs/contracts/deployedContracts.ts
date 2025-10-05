@@ -1840,6 +1840,6 @@ const deployedContracts = {
         "0x6a9cb8339935e835f4762907999264975f1d18d8c8cf2a3b6c22759a7d8ef12",
     },
   },
-};
+} as const;
 
 export default deployedContracts;

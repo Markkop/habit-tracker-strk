@@ -22,7 +22,7 @@ export const ContractVariables = ({
 
   const functionsToDisplay = getFunctionsByStateMutability(
     (deployedContractData.abi || []) as Abi,
-    "view",
+    "view"
   )
     .filter((fn) => {
       const isQueryableWithParams = fn.inputs.length === 0;
@@ -43,7 +43,7 @@ export const ContractVariables = ({
         <DisplayVariable
           abi={deployedContractData.abi as Abi}
           abiFunction={fn}
-          contractAddress={deployedContractData.address}
+          contractAddress={deployedContractData.address as `0x${string}`}
           key={fn.name}
           refreshDisplayVariables={refreshDisplayVariables}
           //   inheritedFrom={inheritedFrom}

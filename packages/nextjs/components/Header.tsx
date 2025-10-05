@@ -22,7 +22,10 @@ import { SwitchTheme } from "./SwitchTheme";
 import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
 import { BlockIdentifier } from "starknet";
 import { getBlockExplorerAddressLink } from "~~/utils/scaffold-stark";
-import CopyToClipboard from "react-copy-to-clipboard";
+import CopyToClipboardOriginal from "react-copy-to-clipboard";
+
+// Workaround for React 19 type incompatibility
+const CopyToClipboard = CopyToClipboardOriginal as any;
 
 type HeaderMenuLink = {
   label: string;

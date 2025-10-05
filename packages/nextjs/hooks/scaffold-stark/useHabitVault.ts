@@ -33,6 +33,7 @@ export const useHabitVault = (userAddress?: Address) => {
   const { data: vaultStateData, isLoading: isLoadingVault } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "get_vault_state",
+    args: [],
     watch: true,
   });
 
@@ -40,6 +41,7 @@ export const useHabitVault = (userAddress?: Address) => {
   const { data: stakingRewardsData, isLoading: isLoadingRewards } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "accumulated_rewards",
+    args: [],
     watch: true,
   });
 
@@ -47,6 +49,7 @@ export const useHabitVault = (userAddress?: Address) => {
   const { data: totalStakedData, isLoading: isLoadingStaked } = useScaffoldReadContract({
     contractName: "HabitTracker",
     functionName: "total_staked",
+    args: [],
     watch: true,
   });
 

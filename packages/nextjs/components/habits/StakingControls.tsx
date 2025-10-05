@@ -17,6 +17,7 @@ export const StakingControls = () => {
     useScaffoldWriteContract({
       contractName: "HabitTracker",
       functionName: "sync_staking_rewards",
+      args: [],
     });
 
   const formatSTRK = (amount: bigint) => {
