@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_BASE_PATH
-      ? `https://marcelokopmann1.github.io${process.env.NEXT_PUBLIC_BASE_PATH}`
+      ? `https://markkop.github.io${process.env.NEXT_PUBLIC_BASE_PATH}`
       : "http://localhost:3000"
   ),
   openGraph: {
