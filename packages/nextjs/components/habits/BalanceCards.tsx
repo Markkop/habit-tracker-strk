@@ -125,7 +125,7 @@ export const BalanceCards = () => {
         <div className="text-3xl font-bold mb-1">
           {address ? formatSTRK(availableDeposit) : "0.0000"}
         </div>
-        <div className="text-xs opacity-75">STRK (Available)</div>
+        <div className="text-xs opacity-75">STRK</div>
       </div>
 
       {/* At Stake (Tokens at Risk) */}
@@ -146,7 +146,7 @@ export const BalanceCards = () => {
             ? formatSTRK(userState.blocked_balance)
             : "0.0000"}
         </div>
-        <div className="text-xs opacity-75">STRK (At Risk)</div>
+        <div className="text-xs opacity-75">STRK</div>
       </div>
 
       {/* Rewards - Combined */}
@@ -181,7 +181,7 @@ export const BalanceCards = () => {
           STRK
           {claimableRewards > 0n &&
             pendingRewards > 0n &&
-            " (Check-ins + Yield)"}
+            " (Earned back + Yield)"}
         </div>
       </div>
 

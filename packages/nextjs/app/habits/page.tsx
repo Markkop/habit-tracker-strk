@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useAccount } from "@starknet-react/core";
-import { useHabitTracker } from "~~/hooks/scaffold-stark";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-stark";
+import {
+  useHabitTracker,
+  useScaffoldReadContract,
+} from "~~/hooks/scaffold-stark";
 import { Balance, Address } from "~~/components/scaffold-stark";
 import { CustomConnectButton } from "~~/components/scaffold-stark/CustomConnectButton";
 import { BalanceCards } from "~~/components/habits/BalanceCards";
@@ -143,6 +145,37 @@ export default function HabitTrackerPage() {
   const [newHabitText, setNewHabitText] = useState("");
   const [timerKey, setTimerKey] = useState(0);
   const [isTestingHappyPath, setIsTestingHappyPath] = useState(false);
+  const [happyPathStep, setHappyPathStep] = useState(0);
+  const [newHabitIdForTest, setNewHabitIdForTest] = useState<number | null>(
+    null
+  );
+  const [testHabitName, setTestHabitName] = useState<string>("");
+
+  // Check if we're on localhost
+  const isLocalhost =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+
+  // Get the next step action for display
+  const getNextStepAction = (step: number) => {
+    switch (step) {
+      case 0:
+        return "Approve STRK";
+      case 1:
+        return "Deposit 10 STRK";
+      case 2:
+        return "Create Habit";
+      case 3:
+        return "Prepare Day";
+      case 4:
+        return "Check In";
+      case 5:
+        return "Force Settle";
+      default:
+        return "Start Test";
+    }
+  };
 
   // Update timer every second
   useEffect(() => {
@@ -180,50 +213,129 @@ export default function HabitTrackerPage() {
   const runTestHappyPath = async () => {
     if (!connectedAddress || !epochNow) return;
 
+    const testAmount = BigInt(10) * BigInt(10 ** 18); // 10 STRK
+    // Create unique test habit name to avoid conflicts when testing multiple times
+    const testHabitName = `Drink water ${Date.now()}`;
+
+    // On localhost, run all steps automatically
+    if (isLocalhost) {
+      setIsTestingHappyPath(true);
+      try {
+        // Step 1: Approve 10 STRK
+        console.log("Step 1: Approving 10 STRK...");
+        await approveSTRK(testAmount);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        // Step 2: Deposit 10 STRK
+        console.log("Step 2: Depositing 10 STRK...");
+        await deposit(testAmount);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        // Step 3: Create habit with unique name
+        console.log(`Step 3: Creating habit '${testHabitName}'...`);
+        const habitsBefore = habits?.length || 0;
+        await createHabit(testHabitName);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        // Get the newly created habit ID from the updated habits array
+        const updatedHabits = habits || [];
+        const newHabit = updatedHabits.find(
+          (h) => h.text === testHabitName && !h.archived
+        );
+        const newHabitId = newHabit?.id || habitsBefore + 1;
+        console.log(`New habit created with ID: ${newHabitId}`);
+
+        // Step 4: Prepare day (fund the habit)
+        console.log("Step 4: Preparing day...");
+        await prepareDay();
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+
+        // Step 5: Check in the habit
+        console.log(`Step 5: Checking in habit #${newHabitId}...`);
+        await checkIn(newHabitId);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        // Step 6: Force settle
+        console.log("Step 6: Force settling...");
+        await forceSettleAll();
+
+        console.log("✅ Test Happy Path completed successfully!");
+        setHappyPathStep(0);
+      } catch (error) {
+        console.error("Error during Test Happy Path:", error);
+        setHappyPathStep(0);
+      } finally {
+        setIsTestingHappyPath(false);
+      }
+      return;
+    }
+
+    // On non-localhost (sepolia/mainnet), run step by step
     setIsTestingHappyPath(true);
     try {
-      const testAmount = BigInt(10) * BigInt(10 ** 18); // 10 STRK
+      if (happyPathStep === 0) {
+        // Initialize test habit name at the start
+        const uniqueName = `Drink water ${Date.now()}`;
+        setTestHabitName(uniqueName);
 
-      // Step 1: Approve 10 STRK
-      console.log("Step 1: Approving 10 STRK...");
-      await approveSTRK(testAmount);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+        // Step 1: Approve 10 STRK
+        console.log("Step 1: Approving 10 STRK...");
+        await approveSTRK(testAmount);
+        setHappyPathStep(1);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else if (happyPathStep === 1) {
+        // Step 2: Deposit 10 STRK
+        console.log("Step 2: Depositing 10 STRK...");
+        await deposit(testAmount);
+        setHappyPathStep(2);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else if (happyPathStep === 2) {
+        // Step 3: Create habit with unique name
+        console.log(`Step 3: Creating habit '${testHabitName}'...`);
+        await createHabit(testHabitName);
+        setHappyPathStep(3);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else if (happyPathStep === 3) {
+        // Step 4: Prepare day (fund the habit)
+        console.log("Step 4: Preparing day...");
 
-      // Step 2: Deposit 10 STRK
-      console.log("Step 2: Depositing 10 STRK...");
-      await deposit(testAmount);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+        // Get the newly created habit ID from the updated habits array
+        const updatedHabits = habits || [];
+        const newHabit = updatedHabits.find(
+          (h) => h.text === testHabitName && !h.archived
+        );
+        if (newHabit) {
+          setNewHabitIdForTest(newHabit.id);
+          console.log(`Found new habit with ID: ${newHabit.id}`);
+        }
 
-      // Step 3: Create habit "Drink water"
-      console.log("Step 3: Creating habit 'Drink water'...");
-      // Get current habit count before creating
-      const habitCountBefore = habits?.filter((h) => !h.archived).length || 0;
-      await createHabit("Drink water");
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // The new habit ID will be the total count + 1 (IDs don't reset when habits are archived)
-      const totalHabitsCreated = habits?.length || 0;
-      const newHabitId = totalHabitsCreated + 1;
-      console.log(`New habit ID should be: ${newHabitId}`);
-
-      // Step 4: Prepare day (fund the habit)
-      console.log("Step 4: Preparing day...");
-      await prepareDay();
-      // Wait longer for prepare_day to confirm
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-
-      // Step 5: Check in the habit
-      console.log(`Step 5: Checking in habit #${newHabitId}...`);
-      await checkIn(newHabitId);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Step 6: Force settle
-      console.log("Step 6: Force settling...");
-      await forceSettleAll();
-
-      console.log("✅ Test Happy Path completed successfully!");
+        await prepareDay();
+        setHappyPathStep(4);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else if (happyPathStep === 4) {
+        // Step 5: Check in the habit
+        const habitId =
+          newHabitIdForTest ||
+          habits?.find((h) => h.text === testHabitName && !h.archived)?.id ||
+          1;
+        console.log(`Step 5: Checking in habit #${habitId}...`);
+        await checkIn(habitId);
+        setHappyPathStep(5);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else if (happyPathStep === 5) {
+        // Step 6: Force settle
+        console.log("Step 6: Force settling...");
+        await forceSettleAll();
+        console.log("✅ Test Happy Path completed successfully!");
+        setHappyPathStep(0);
+        setNewHabitIdForTest(null);
+        setTestHabitName("");
+      }
     } catch (error) {
       console.error("Error during Test Happy Path:", error);
+      setHappyPathStep(0);
+      setNewHabitIdForTest(null);
+      setTestHabitName("");
     } finally {
       setIsTestingHappyPath(false);
     }
@@ -393,7 +505,11 @@ export default function HabitTrackerPage() {
             <div className="border-l border-gray-400 mx-1"></div>
             <div
               className="tooltip tooltip-bottom"
-              data-tip="Approve → Deposit 10 STRK → Create 'Drink water' → Fund → Check In → Force Settle"
+              data-tip={
+                isLocalhost
+                  ? "Approve → Deposit 10 STRK → Create 'Drink water' → Fund → Check In → Force Settle (Auto)"
+                  : "Approve → Deposit 10 STRK → Create 'Drink water' → Fund → Check In → Force Settle (Step by Step)"
+              }
             >
               <button
                 className="btn btn-success"
@@ -403,10 +519,14 @@ export default function HabitTrackerPage() {
                 {isTestingHappyPath ? (
                   <>
                     <span className="loading loading-spinner loading-sm"></span>
-                    Testing...
+                    {isLocalhost
+                      ? "Testing..."
+                      : getNextStepAction(happyPathStep) + "..."}
                   </>
-                ) : (
+                ) : happyPathStep === 0 ? (
                   <>🎯 Test Happy Path</>
+                ) : (
+                  <>🎯 Test: {getNextStepAction(happyPathStep)}</>
                 )}
               </button>
             </div>

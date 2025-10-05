@@ -7,7 +7,7 @@ const deployedContracts = {
   devnet: {
     MockStaking: {
       address:
-        "0x7ca72ce5ad48fa87e5f83121938bee967299c67fce521f9790bae7bcee3a39e",
+        "0x1b9d96b16839d8a182a5d7e7333d1bbc6ee98c840f80938443bd71db6ecf660",
       abi: [
         {
           type: "impl",
@@ -128,7 +128,7 @@ const deployedContracts = {
     },
     HabitTracker: {
       address:
-        "0x5c6e1ef434cbd9115e4877562828fd7921e74217a359685bcbd73a0c5b7ce82",
+        "0x29af2e2f1d71e60dcb6e99fb1942bc559b8e9b3802a3efb71cfa376bd9fa85f",
       abi: [
         {
           type: "impl",
@@ -925,7 +925,7 @@ const deployedContracts = {
   sepolia: {
     MockStaking: {
       address:
-        "0xc517dee7b21858613fc2d0f97a3d5a5c702c363ac61d9b5d7ea62c47b7ad13",
+        "0x21783c624c5ee9a296469a39354c026ed882b81d6b0865a07b5d3a7b9313dd3",
       abi: [
         {
           type: "impl",
@@ -1046,7 +1046,7 @@ const deployedContracts = {
     },
     HabitTracker: {
       address:
-        "0x614921ea087ce70e1a33354b7224a4a0518de286686ab90f17ba3ac152a4985",
+        "0x217aea3df1315f6969b75aaf13e08a465abf047cf4ae7f1fa44d636c950d9c5",
       abi: [
         {
           type: "impl",
