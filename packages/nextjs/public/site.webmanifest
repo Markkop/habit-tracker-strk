@@ -2,20 +2,57 @@
   "name": "HabitChain - Build Daily Habits with Crypto Staking",
   "short_name": "HabitChain",
   "description": "Transform your daily habits with crypto incentives on Starknet",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
-      "sizes": "192x192",
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "favicon-16x16.png",
+      "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "/android-chrome-512x512.png",
-      "sizes": "512x512",
+      "src": "favicon-32x32.png",
+      "sizes": "32x32",
       "type": "image/png"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "theme_color": "#8a45fc",
-  "background_color": "#000000",
-  "display": "standalone",
-  "start_url": "/"
+  "categories": ["web3", "blockchain", "starknet", "productivity", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "My Habits",
+      "url": "./habits",
+      "description": "View and manage your habits"
+    },
+    {
+      "name": "Configure",
+      "url": "./configure",
+      "description": "Configure your settings"
+    }
+  ],
+  "prefer_related_applications": false
 }
