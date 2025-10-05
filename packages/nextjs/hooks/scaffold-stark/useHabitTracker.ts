@@ -107,21 +107,21 @@ export const useHabitTracker = () => {
   // STRK token contract interactions
   const { data: strkAllowance, refetch: refetchAllowance } =
     useScaffoldReadContract({
-      contractName: "Strk",
+      contractName: "STRK",
       functionName: "allowance",
       args: [connectedAddress, habitTrackerAddress] as const,
       watch: true,
     });
 
   const { data: strkBalance } = useScaffoldReadContract({
-    contractName: "Strk",
+    contractName: "STRK",
     functionName: "balance_of",
     args: [connectedAddress] as const,
     watch: true,
   });
 
   const { data: treasuryBalance } = useScaffoldReadContract({
-    contractName: "Strk",
+    contractName: "STRK",
     functionName: "balance_of",
     args: [treasuryAddress] as const,
     watch: true,
@@ -190,7 +190,7 @@ export const useHabitTracker = () => {
 
   // STRK approve function
   const { sendAsync: approveAsync } = useScaffoldWriteContract({
-    contractName: "Strk",
+    contractName: "STRK",
     functionName: "approve",
     args: [undefined, undefined],
   });

@@ -33,7 +33,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
   // Read current allowance from STRK token
   const { data: allowanceData, refetch: refetchAllowance } =
     useScaffoldReadContract({
-      contractName: "Strk",
+      contractName: "STRK",
       functionName: "allowance",
       args: [address, habitTrackerAddress],
       watch: true,
@@ -44,7 +44,7 @@ export const DepositModal = ({ isOpen, onClose }: DepositModalProps) => {
   // Contract write hooks
   const { sendAsync: approve, isPending: isApproving } =
     useScaffoldWriteContract({
-      contractName: "Strk",
+      contractName: "STRK",
       functionName: "approve",
       args: [
         habitTrackerAddress,

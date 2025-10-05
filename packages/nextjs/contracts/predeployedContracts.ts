@@ -12,21 +12,21 @@ import {
 
 const preDeployedContracts = {
   devnet: {
-    Strk: {
+    STRK: {
       address: universalStrkAddress,
       abi: strkAbi,
       classHash: devnetStrkClassHash,
     },
   },
   sepolia: {
-    Strk: {
+    STRK: {
       address: universalStrkAddress,
       abi: strkAbi,
       classHash: sepoliaMainnetStrkClassHash,
     },
   },
   mainnet: {
-    Strk: {
+    STRK: {
       address: universalStrkAddress,
       abi: strkAbi,
       classHash: sepoliaMainnetStrkClassHash,

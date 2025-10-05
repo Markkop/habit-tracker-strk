@@ -27,7 +27,7 @@ type UseScaffoldStrkBalanceProps = {
  */
 
 const useScaffoldStrkBalance = ({ address }: UseScaffoldStrkBalanceProps) => {
-  const { data: deployedContract } = useDeployedContractInfo("Strk");
+  const { data: deployedContract } = useDeployedContractInfo("STRK");
 
   const { data, ...props } = useReadContract({
     functionName: "balance_of",
