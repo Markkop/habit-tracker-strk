@@ -5,7 +5,7 @@ export class ContractClassHashCache {
   private cache = new Map<string, string>();
   private pendingRequests = new Map<string, Promise<string | undefined>>();
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): ContractClassHashCache {
     if (!ContractClassHashCache.instance) {
