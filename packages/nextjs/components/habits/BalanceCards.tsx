@@ -163,7 +163,7 @@ export const BalanceCards = () => {
             claimableRewards > 0n || pendingRewards > 0n ? (
               <span>
                 {formatSTRK(claimableRewards)}
-                {pendingRewards > 0n && (
+                {claimableRewards > 0n && pendingRewards > 0n && (
                   <span className="text-yellow-300">
                     {" "}
                     + {formatSTRK(pendingRewards)}
