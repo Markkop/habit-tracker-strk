@@ -32,6 +32,6 @@ const preDeployedContracts = {
       classHash: sepoliaMainnetStrkClassHash,
     },
   },
-} as const;
+};
 
 export default preDeployedContracts;

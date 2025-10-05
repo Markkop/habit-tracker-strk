@@ -94,24 +94,6 @@ export const BalanceCards = () => {
   // Separate claimable rewards (earned from check-ins)
   const claimableRewards = userState ? userState.claimable_balance : 0n;
 
-  // Debug: log staking info
-  if (address) {
-    console.log("🔍 Staking Debug Info:");
-    console.log("  Staking Contract Address:", stakingContractAddress);
-    console.log("  Claimable Rewards:", formatSTRK(claimableRewards), "STRK");
-    console.log(
-      "  Staked Amount (MockStaking):",
-      formatSTRK(stakedAmount),
-      "STRK"
-    );
-    console.log(
-      "  Total Staked (HabitTracker):",
-      formatSTRK(contractTotalStaked),
-      "STRK"
-    );
-    console.log("  Pending Rewards:", formatSTRK(pendingRewards), "STRK");
-  }
-
   // Calculate total rewards (claimable + real-time staking yield)
   const totalRewards = claimableRewards + pendingRewards;
 

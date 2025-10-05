@@ -1,3 +1,5 @@
+import { Abi } from "@starknet-react/core";
+
 // Strk
 const universalStrkAddress =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;
@@ -14,7 +16,7 @@ const devnetUDCAddress =
 const devnetUDCClassHash =
   "0x01b2df6d8861670d4a8ca4670433b2418d78169c2947f46dc614e69f333745c8" as const;
 
-const strkAbi = [
+const strkAbi: Abi = [
   {
     type: "impl",
     name: "LockingContract",
@@ -1135,7 +1137,7 @@ const strkAbi = [
       },
     ],
   },
-] as const;
+];
 
 export const LAST_CONNECTED_TIME_LOCALSTORAGE_KEY = "lastConnectedTime";
 

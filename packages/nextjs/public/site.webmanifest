@@ -1,0 +1,21 @@
+{
+  "name": "HabitChain - Build Daily Habits with Crypto Staking",
+  "short_name": "HabitChain",
+  "description": "Transform your daily habits with crypto incentives on Starknet",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#8a45fc",
+  "background_color": "#000000",
+  "display": "standalone",
+  "start_url": "/"
+}

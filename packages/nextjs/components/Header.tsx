@@ -1,11 +1,19 @@
 "use client";
 
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bars3Icon, BugAntIcon } from "@heroicons/react/24/outline";
-import { useOutsideClick } from "~~/hooks/scaffold-stark";
+import {
+  Bars3Icon,
+  BugAntIcon,
+  ArrowTopRightOnSquareIcon,
+  DocumentDuplicateIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+import {
+  useOutsideClick,
+  useDeployedContractInfo,
+} from "~~/hooks/scaffold-stark";
 import { CustomConnectButton } from "~~/components/scaffold-stark/CustomConnectButton";
 import { useTheme } from "next-themes";
 import { useTargetNetwork } from "~~/hooks/scaffold-stark/useTargetNetwork";
@@ -13,6 +21,8 @@ import { devnet } from "@starknet-react/chains";
 import { SwitchTheme } from "./SwitchTheme";
 import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
 import { BlockIdentifier } from "starknet";
+import { getBlockExplorerAddressLink } from "~~/utils/scaffold-stark";
+import CopyToClipboard from "react-copy-to-clipboard";
 
 type HeaderMenuLink = {
   label: string;
@@ -21,10 +31,6 @@ type HeaderMenuLink = {
 };
 
 export const menuLinks: HeaderMenuLink[] = [
-  {
-    label: "Home",
-    href: "/",
-  },
   {
     label: "Habit Tracker",
     href: "/habits",
@@ -74,15 +80,18 @@ export const HeaderMenuLinks = () => {
  */
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [addressCopied, setAddressCopied] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
 
   useOutsideClick(
     burgerMenuRef,
-    useCallback(() => setIsDrawerOpen(false), []),
+    useCallback(() => setIsDrawerOpen(false), [])
   );
 
   const { targetNetwork } = useTargetNetwork();
   const isLocalNetwork = targetNetwork.network === devnet.network;
+  const { data: habitTrackerContract } =
+    useDeployedContractInfo("HabitTracker");
 
   const { provider } = useProvider();
   const { address, status, chainId } = useAccount();
@@ -148,27 +157,52 @@ export const Header = () => {
             </ul>
           )}
         </div>
-        <Link
-          href="/"
-          passHref
-          className="hidden lg:flex items-center gap-2 ml-4 mr-6 shrink-0"
-        >
-          <div className="flex relative w-10 h-10">
-            <Image
-              alt="SE2 logo"
-              className="cursor-pointer"
-              fill
-              src="/logo.svg"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold leading-tight">Scaffold-Stark</span>
-            <span className="text-xs">Starknet dev stack</span>
-          </div>
-        </Link>
-        <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal px-1 gap-2">
+        <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal px-1 gap-2 ml-4">
           <HeaderMenuLinks />
         </ul>
+      </div>
+      <div className="navbar-center hidden lg:flex">
+        {habitTrackerContract && (
+          <div className="flex items-center gap-2 text-sm px-4 py-2 bg-base-200 rounded-full">
+            <span className="font-semibold">HabitTracker:</span>
+            <span className="font-mono">
+              {habitTrackerContract.address.slice(0, 6)}...
+              {habitTrackerContract.address.slice(-4)}
+            </span>
+            {addressCopied ? (
+              <CheckCircleIcon
+                className="h-4 w-4 text-sky-600 cursor-pointer"
+                aria-hidden="true"
+              />
+            ) : (
+              <CopyToClipboard
+                text={habitTrackerContract.address}
+                onCopy={() => {
+                  setAddressCopied(true);
+                  setTimeout(() => {
+                    setAddressCopied(false);
+                  }, 800);
+                }}
+              >
+                <DocumentDuplicateIcon
+                  className="h-4 w-4 text-sky-600 cursor-pointer hover:text-sky-700"
+                  aria-hidden="true"
+                />
+              </CopyToClipboard>
+            )}
+            <a
+              href={getBlockExplorerAddressLink(
+                targetNetwork,
+                habitTrackerContract.address
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-600 hover:text-sky-700"
+            >
+              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+            </a>
+          </div>
+        )}
       </div>
       <div className="navbar-end grow mr-2 gap-4">
         {status === "connected" && !isDeployed ? (
