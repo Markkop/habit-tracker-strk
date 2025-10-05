@@ -1,104 +1,69 @@
-# Habit Tracker (Starknet)
+# HabitChain (Starknet)
 
-A gamified habit tracking dApp built on Starknet where users stake STRK tokens to build daily habits. Success earns tokens back, failure means lost stakes go to the treasury.
+HabitChain is a Starknet‑based dApp that turns self‑discipline into a financial commitment.
 
-## 🎯 Core Concept
+Users lock funds on their own habit, complete daily check‑ins, and—if successful—reclaim their stake plus yield.  
+If they fail, the locked fund is slashed to the protocol treasury (or, in groups, redistributed to successful peers).
 
-- **Daily Stakes**: 10 STRK per habit per day
-- **Success**: Check in before UTC midnight → win 10 STRK
-- **Failure**: Miss check-in → lose 10 STRK to treasury
-- **Balance Blocking**: Prevents spending staked funds during active cycles
+The prototype proves one essential on‑chain action: **commit → check‑in → settle**
 
-## 🏗️ Tech Stack
+By adding real consequences and immediate feedback, HabitChain closes the “motivation gap”, aligning personal progress with tangible rewards.
 
-- **Frontend**: Next.js + Scaffold-Stark 2 + TypeScript + Tailwind + daisyUI
-- **Smart Contracts**: Cairo 2.0 + Starknet Foundry
-- **Blockchain**: Starknet (Devnet/Sepolia/Mainnet)
-- **Wallet Support**: ArgentX, Braavos
+## Details
 
-## 📦 Project Structure
+- Network: Starknet Sepolia Testnet
+- Address: [0x614921ea087ce70e1a33354b7224a4a0518de286686ab90f17ba3ac152a4985](https://sepolia.voyager.online/contract/0x614921ea087ce70e1a33354b7224a4a0518de286686ab90f17ba3ac152a4985)
+- ABI: [https://github.com/Markkop/habit-tracker-strk/blob/main/packages/nextjs/contracts/deployedContracts.ts#L1047](https://github.com/Markkop/habit-tracker-strk/blob/main/packages/nextjs/contracts/deployedContracts.ts#L1047)
 
-```
-├── packages/nextjs/          # Frontend (Next.js + React)
-│   ├── app/habits/          # Main habit tracking UI
-│   └── hooks/useHabitTracker.ts  # React hooks for contract interaction
-└── packages/snfoundry/       # Smart contracts & deployment
-    └── contracts/src/habit_tracker.cairo  # Core contract
-```
+## Testing Instructions
 
-## 🚀 Quick Start
+1. Go to https://markkop.github.io/habit-tracker-strk/habits/
+2. Setup/connect wallet (see [Connecting to Starknet](https://www.starknet.io/blog/getting-started-using-starknet-setting-up-a-starknet-wallet/))
+3. Deposit funds
+4. Create two habits
+5. Fund habits (It costs 10 STRK each)
+6. Check-in one habit, but don't do the other
+7. Force settle to avoid needing to wait until 00:00 UTC
+8. Notice you know have 10 STRK as rewards from the checked-in habit and see some extra yield
 
-### Prerequisites
-- Node.js >= 22
-- Yarn package manager
+Note: you might need to refresh the page in between some steps if the UI don't update
 
-### Installation & Setup
+## Technology Stack
 
-1. **Install dependencies**
-   ```bash
-   yarn install
-   ```
+This project was bootstraped with [scaffold-stark-2](https://github.com/Scaffold-Stark/scaffold-stark-2) and includes the following:
 
-2. **Start local Starknet network**
-   ```bash
-   yarn chain
-   ```
+- [Next.js](https://nextjs.org/) (v15.2.4) - React framework for the frontend
+- [React](https://react.dev/) (v19.0.0) - UI library
+- [TypeScript](https://www.typescriptlang.org/) (v5) - Type-safe JavaScript
+- [Starknet.js](https://www.starknetjs.com/) (v8.5.3) - JavaScript library for Starknet interaction
+- [Starknet-React](https://github.com/apibara/starknet-react) (v5.0.1) - React hooks for Starknet
+- [Cairo](https://www.cairo-lang.org/) - Smart contract language for Starknet
+- [Starknet Foundry](https://foundry-rs.github.io/starknet-foundry/) - Testing and deployment framework
+- [OpenZeppelin Contracts](https://github.com/OpenZeppelin/cairo-contracts) (v2.0.0) - Secure smart contract library
+- [TailwindCSS](https://tailwindcss.com/) (v4) - Utility-first CSS framework
+- [daisyUI](https://daisyui.com/) (v4) - Tailwind CSS component library
+- [Scaffold-Stark Burner Wallet](https://www.npmjs.com/package/@scaffold-stark/stark-burner) - Built-in development wallet
 
-3. **Deploy smart contracts**
-   ```bash
-   yarn deploy
-   ```
+## Team
 
-4. **Launch frontend**
-   ```bash
-   yarn start
-   ```
+- [Markkop](https://github.com/Markkop)
+- [dutragustavo](https://github.com/dutragustavo)
+- [hpereira1](https://github.com/hpereira1)
+- [artur-simon](https://github.com/artur-simon)
 
-Visit `http://localhost:3000` to access the app.
+## References
 
-## 🎮 How It Works
+- [CryptoLar × Starknet: O Hackathon — Ato I](https://luma.com/cryptolar-starknet-hackathon?tk=e1RsoL&utm_source=chatgpt.com)
+- [Cair Coder MCP](https://www.cairo-coder.com/)
+- [Starknet Tutorials](https://www.starknet.io/tutorials/?utm_source=chatgpt.com)
 
-### 1. Deposit STRK
-- Connect wallet and deposit STRK tokens
-- Funds are available for staking
+## Development Setup Instructions
 
-### 2. Create Habits
-- Add daily habits (e.g., "Exercise 30 minutes")
-- Each habit requires 10 STRK daily stake
-
-### 3. Daily Cycle
-- **Prepare Day**: Lock 10 STRK for each active habit (00:00 UTC)
-- **Check In**: Mark habit complete during the day
-- **Settlement**: Process outcomes after UTC midnight
-  - ✅ Success: 10 STRK → claimable balance
-  - ❌ Failure: 10 STRK → treasury
-- **Testing Only**: force_settle_all function allows testing of settle_all function without waiting for midnight UTC
-
-### 4. Claim Rewards
-- Withdraw successfully earned STRK
-- Redeploy winnings for more stakes
-
-## 🌐 Deployment
-
-### GitHub Pages
-This project is configured for deployment to GitHub Pages. See [GITHUB_PAGES_SETUP.md](./GITHUB_PAGES_SETUP.md) for detailed instructions.
-
-Quick steps:
-1. Enable GitHub Pages in repository settings (Settings > Pages > Source: GitHub Actions)
-2. Push to main branch
-3. GitHub Actions will automatically build and deploy
-
-Your site will be available at: `https://<username>.github.io/<repository-name>/`
-
-### Vercel
-Alternatively, you can deploy to Vercel:
-```bash
-yarn vercel
-```
-
-## 🔮 Roadmap
-
-- [ ] Integrate yield to blocked/claimable balances
-- [ ] Add Sponsor feature, where organizations can add extra rewards on habit completion
-- [ ] Add Party feature, where slashed STRK is redistributed to users who completed habits in a party
-- [ ] Add trophy NFTs for successive days of habit completion
+- Clone the repository
+- Run `yarn install` to install the dependencies
+- Run `yarn start` to run the frontend
+- Visit `http://localhost:3000` to see the app
+- Run `yarn chain` to run the local Starknet network
+- Run `yarn deploy` to deploy the contracts
+- When running locally, use `targetNetworks: [chains.devnet]` in `packages/nextjs/scaffold.config.ts`
+- But when deploying to the testnet, use `targetNetworks: [chains.sepolia]`
