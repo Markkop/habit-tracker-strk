@@ -66,10 +66,8 @@ pub trait IHabitTracker<TContractState> {
     fn claim(ref self: TContractState, amount: u256);
     fn redeposit_from_claimable(ref self: TContractState, amount: u256);
     
-    // Vault/Staking functions
+    // Staking rewards sync (only for claiming rewards from protocol)
     fn sync_staking_rewards(ref self: TContractState);
-    fn stake_to_protocol(ref self: TContractState, amount: u256);
-    fn unstake_from_protocol(ref self: TContractState, amount: u256);
 
     // View functions
     fn get_user_state(self: @TContractState, user: ContractAddress) -> UserState;
@@ -83,6 +81,7 @@ pub trait IHabitTracker<TContractState> {
     fn get_vault_state(self: @TContractState) -> VaultState;
     fn accumulated_rewards(self: @TContractState) -> u256;
     fn total_staked(self: @TContractState) -> u256;
+    fn staking_contract(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::contract]
@@ -274,8 +273,9 @@ pub mod HabitTracker {
             let deposit_balance = self.user_deposit_balance.read(caller);
             let blocked_balance = self.user_blocked_balance.read(caller);
 
-            let available_balance = deposit_balance - blocked_balance;
-            assert(available_balance >= amount, 'Insufficient unlocked balance');
+            // Can only withdraw from deposit balance that's not at stake
+            let available_to_withdraw = deposit_balance - blocked_balance;
+            assert(available_to_withdraw >= amount, 'Insufficient deposit balance');
 
             self.user_deposit_balance.write(caller, deposit_balance - amount);
 
@@ -393,7 +393,7 @@ pub mod HabitTracker {
                         let available_balance = deposit_balance - blocked_balance;
 
                         if available_balance >= STAKE_PER_DAY {
-                            // Fund this habit
+                            // Fund this habit by putting tokens at stake (risk)
                             blocked_balance += STAKE_PER_DAY;
 
                             let new_status = DailyStatus {
@@ -432,25 +432,28 @@ pub mod HabitTracker {
                 };
                 self.daily_status.write((user, epoch_id, habit_id), new_status);
 
+                // Release tokens from "at stake" status
                 let mut blocked_balance = self.user_blocked_balance.read(user);
                 blocked_balance -= STAKE_PER_DAY;
                 self.user_blocked_balance.write(user, blocked_balance);
 
-                // Always decrement deposit_balance since funds are leaving the deposit pool
+                // Remove from deposit pool (either going to rewards or slashed)
                 let mut deposit_balance = self.user_deposit_balance.read(user);
                 deposit_balance -= STAKE_PER_DAY;
                 self.user_deposit_balance.write(user, deposit_balance);
 
                 if status.checked {
-                    // Success: Move funds from deposit to claimable
+                    // Success: Earn tokens back as rewards (claimable + auto-stake for yield)
                     let mut claimable_balance = self.user_claimable_balance.read(user);
                     claimable_balance += STAKE_PER_DAY;
                     self.user_claimable_balance.write(user, claimable_balance);
 
+                    // Automatically stake the earned tokens to generate yield
+                    self._auto_stake_rewards(STAKE_PER_DAY);
+
                     self.emit(SettledSuccess { user, habit_id, epoch_id, amount: STAKE_PER_DAY });
                 } else {
-                    // Failure: Send funds to treasury
-
+                    // Failure: Tokens are slashed and sent to treasury
                     let strk_dispatcher = IERC20Dispatcher {
                         contract_address: STRK_CONTRACT.try_into().unwrap(),
                     };
@@ -496,6 +499,7 @@ pub mod HabitTracker {
 
             let mut processed = 0;
             let mut habit_id = 1;
+            let mut total_successful_rewards: u256 = 0;
 
             while processed < max_count && habit_id <= self.user_habit_counter.read(user) {
                 let habit = self.habits.read((user, habit_id));
@@ -509,22 +513,25 @@ pub mod HabitTracker {
                         };
                         self.daily_status.write((user, epoch_id, habit_id), new_status);
 
-                        // Unblock the stake
+                        // Release tokens from "at stake" status
                         let mut blocked_balance = self.user_blocked_balance.read(user);
                         blocked_balance -= STAKE_PER_DAY;
                         self.user_blocked_balance.write(user, blocked_balance);
 
-                        // Always decrement deposit_balance since funds are leaving the deposit pool
+                        // Remove from deposit pool (either going to rewards or slashed)
                         let mut deposit_balance = self.user_deposit_balance.read(user);
                         deposit_balance -= STAKE_PER_DAY;
                         self.user_deposit_balance.write(user, deposit_balance);
 
                         // Process outcome
                         if status.checked {
-                            // Success: Move funds from deposit to claimable
+                            // Success: Earn tokens back as rewards (claimable + auto-stake for yield)
                             let mut claimable_balance = self.user_claimable_balance.read(user);
                             claimable_balance += STAKE_PER_DAY;
                             self.user_claimable_balance.write(user, claimable_balance);
+
+                            // Track successful rewards for batch staking (to generate yield)
+                            total_successful_rewards += STAKE_PER_DAY;
 
                             self
                                 .emit(
@@ -533,8 +540,7 @@ pub mod HabitTracker {
                                     },
                                 );
                         } else {
-                            // Failure: Send funds to treasury
-
+                            // Failure: Tokens are slashed and sent to treasury
                             let strk_dispatcher = IERC20Dispatcher {
                                 contract_address: STRK_CONTRACT.try_into().unwrap(),
                             };
@@ -551,6 +557,11 @@ pub mod HabitTracker {
                     }
                 }
                 habit_id += 1;
+            }
+
+            // Automatically stake all earned rewards from this batch to generate yield
+            if total_successful_rewards > 0 {
+                self._auto_stake_rewards(total_successful_rewards);
             }
 
             // Auto-reset: Clear all daily statuses for this epoch to allow repeated testing
@@ -633,84 +644,6 @@ pub mod HabitTracker {
             self.last_reward_sync.write(get_block_timestamp() / SECONDS_PER_DAY);
         }
 
-        fn stake_to_protocol(ref self: ContractState, amount: u256) {
-            assert(amount > 0, 'Amount must be greater than 0');
-            
-            let staking_address = self.staking_contract.read();
-            
-            // Skip if staking contract not set (for testing without staking)
-            let zero_addr: ContractAddress = 0.try_into().unwrap();
-            let dummy_addr: ContractAddress = 1.try_into().unwrap();
-            
-            if staking_address == zero_addr || staking_address == dummy_addr {
-                // Simulate successful stake by updating total_staked
-                let total_staked = self.total_staked.read();
-                self.total_staked.write(total_staked + amount);
-                
-                self.emit(StakedToProtocol { 
-                    amount, 
-                    epoch: get_block_timestamp() / SECONDS_PER_DAY 
-                });
-                return;
-            }
-
-            let staking_dispatcher = IStakingContractDispatcher {
-                contract_address: staking_address
-            };
-            
-            // Approve and stake
-            let strk = IERC20Dispatcher {
-                contract_address: STRK_CONTRACT.try_into().unwrap()
-            };
-            strk.approve(staking_address, amount);
-            
-            staking_dispatcher.stake(amount, get_contract_address());
-            
-            let total_staked = self.total_staked.read();
-            self.total_staked.write(total_staked + amount);
-            
-            self.emit(StakedToProtocol { 
-                amount, 
-                epoch: get_block_timestamp() / SECONDS_PER_DAY 
-            });
-        }
-
-        fn unstake_from_protocol(ref self: ContractState, amount: u256) {
-            assert(amount > 0, 'Amount must be greater than 0');
-            
-            let staking_address = self.staking_contract.read();
-            let total_staked = self.total_staked.read();
-            assert(total_staked >= amount, 'Insufficient staked balance');
-            
-            // Skip if staking contract not set (for testing without staking)
-            let zero_addr: ContractAddress = 0.try_into().unwrap();
-            let dummy_addr: ContractAddress = 1.try_into().unwrap();
-            
-            if staking_address == zero_addr || staking_address == dummy_addr {
-                // Simulate successful unstake by updating total_staked
-                self.total_staked.write(total_staked - amount);
-                
-                self.emit(UnstakedFromProtocol { 
-                    amount, 
-                    epoch: get_block_timestamp() / SECONDS_PER_DAY 
-                });
-                return;
-            }
-
-            let staking_dispatcher = IStakingContractDispatcher {
-                contract_address: staking_address
-            };
-            
-            staking_dispatcher.unstake(amount);
-            
-            self.total_staked.write(total_staked - amount);
-            
-            self.emit(UnstakedFromProtocol { 
-                amount, 
-                epoch: get_block_timestamp() / SECONDS_PER_DAY 
-            });
-        }
-
         fn get_user_state(self: @ContractState, user: ContractAddress) -> UserState {
             UserState {
                 deposit_balance: self.user_deposit_balance.read(user),
@@ -780,6 +713,10 @@ pub mod HabitTracker {
         fn total_staked(self: @ContractState) -> u256 {
             self.total_staked.read()
         }
+
+        fn staking_contract(self: @ContractState) -> ContractAddress {
+            self.staking_contract.read()
+        }
     }
 
     #[generate_trait]
@@ -801,6 +738,50 @@ pub mod HabitTracker {
             // In full ERC4626 implementation, this would come from ERC20Component
             // This is a simplified version for phase 1
             0 // Placeholder - would need to track or calculate from all users
+        }
+
+        fn _auto_stake_rewards(ref self: ContractState, amount: u256) {
+            // Internal function to automatically stake earned rewards for yield generation
+            // This is the ONLY way tokens get staked (on yield) - users cannot manually stake
+            // Terminology: "stake" here means putting tokens on a yield-generating protocol
+            
+            let staking_address = self.staking_contract.read();
+            
+            // Skip if staking contract not set (for testing without staking)
+            let zero_addr: ContractAddress = 0.try_into().unwrap();
+            let dummy_addr: ContractAddress = 1.try_into().unwrap();
+            
+            if staking_address == zero_addr || staking_address == dummy_addr {
+                // Simulate successful stake by updating total_staked
+                let total_staked = self.total_staked.read();
+                self.total_staked.write(total_staked + amount);
+                
+                self.emit(StakedToProtocol { 
+                    amount, 
+                    epoch: get_block_timestamp() / SECONDS_PER_DAY 
+                });
+                return;
+            }
+
+            let staking_dispatcher = IStakingContractDispatcher {
+                contract_address: staking_address
+            };
+            
+            // Approve and stake
+            let strk = IERC20Dispatcher {
+                contract_address: STRK_CONTRACT.try_into().unwrap()
+            };
+            strk.approve(staking_address, amount);
+            
+            staking_dispatcher.stake(amount, get_contract_address());
+            
+            let total_staked = self.total_staked.read();
+            self.total_staked.write(total_staked + amount);
+            
+            self.emit(StakedToProtocol { 
+                amount, 
+                epoch: get_block_timestamp() / SECONDS_PER_DAY 
+            });
         }
     }
 }

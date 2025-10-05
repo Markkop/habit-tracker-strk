@@ -7,7 +7,7 @@
 - Watch out for errors related to mixing BigInt and other types, use explicit conversions.
 - Run lint and type check after making changes and fix errors.
 - Avoid taking screenshots with the Chrome MCP, try using snapshot only, except for specific UI layout issues.
-
+- Don't create .md files of summaries or anything, unlesss I ask you to do it.
 
 # Scaffold-Stark 2 Development Assistant
 
@@ -694,7 +694,7 @@ useScaffoldWatchContractEvent({
         greeting_setter,
         value,
         premium,
-        new_greeting,
+        new_greeting
       );
     });
   },

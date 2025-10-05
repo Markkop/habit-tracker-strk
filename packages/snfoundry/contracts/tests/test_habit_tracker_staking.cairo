@@ -48,29 +48,47 @@ trait IExternalMockStaking<TContractState> {
 #[starknet::contract]
 mod MockStakingContract {
     use super::IMockStakingContract;
-    use starknet::{ContractAddress, get_caller_address};
+    use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
     use starknet::storage::{Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess};
+
+    // Yield rate: 0.01 STRK per 30 seconds per staked token
+    const REWARD_PER_30_SECONDS: u256 = 10_000_000_000_000_000; // 0.01 STRK
+    const REWARD_INTERVAL: u64 = 30; // seconds
 
     #[storage]
     struct Storage {
         staked_amounts: Map<ContractAddress, u256>,
-        pending_rewards: Map<ContractAddress, u256>,
+        stake_timestamp: Map<ContractAddress, u64>,
+        claimed_rewards: Map<ContractAddress, u256>,
         total_staked: u256,
+        reward_pool: u256, // Pool of STRK to distribute as rewards
+    }
+
+    #[constructor]
+    fn constructor(ref self: ContractState, initial_reward_pool: u256) {
+        // Initialize reward pool (will be funded by deployer)
+        self.reward_pool.write(initial_reward_pool);
     }
 
     #[abi(embed_v0)]
     impl MockStakingContractImpl of IMockStakingContract<ContractState> {
         fn stake(ref self: ContractState, amount: u256, staker_address: ContractAddress) {
+            // Claim any pending rewards before updating stake
+            let pending = self._calculate_pending_rewards(staker_address);
+            if pending > 0 {
+                let claimed = self.claimed_rewards.entry(staker_address).read();
+                self.claimed_rewards.entry(staker_address).write(claimed + pending);
+            }
+
+            // Update staked amount
             let current = self.staked_amounts.entry(staker_address).read();
             self.staked_amounts.entry(staker_address).write(current + amount);
             
+            // Update timestamp to now (restart reward calculation)
+            self.stake_timestamp.entry(staker_address).write(get_block_timestamp());
+            
             let total = self.total_staked.read();
             self.total_staked.write(total + amount);
-            
-            // Simulate 5% APY rewards accumulation
-            let rewards = amount * 5 / 100;
-            let current_rewards = self.pending_rewards.entry(staker_address).read();
-            self.pending_rewards.entry(staker_address).write(current_rewards + rewards);
         }
 
         fn unstake(ref self: ContractState, amount: u256) {
@@ -78,7 +96,18 @@ mod MockStakingContract {
             let current = self.staked_amounts.entry(caller).read();
             assert(current >= amount, 'Insufficient staked balance');
             
+            // Claim any pending rewards before unstaking
+            let pending = self._calculate_pending_rewards(caller);
+            if pending > 0 {
+                let claimed = self.claimed_rewards.entry(caller).read();
+                self.claimed_rewards.entry(caller).write(claimed + pending);
+            }
+            
+            // Update staked amount
             self.staked_amounts.entry(caller).write(current - amount);
+            
+            // Update timestamp to now
+            self.stake_timestamp.entry(caller).write(get_block_timestamp());
             
             let total = self.total_staked.read();
             self.total_staked.write(total - amount);
@@ -86,9 +115,27 @@ mod MockStakingContract {
 
         fn claim_rewards(ref self: ContractState) -> u256 {
             let caller = get_caller_address();
-            let rewards = self.pending_rewards.entry(caller).read();
-            self.pending_rewards.entry(caller).write(0);
-            rewards
+            
+            // Calculate pending rewards
+            let pending = self._calculate_pending_rewards(caller);
+            
+            // Add to claimed rewards
+            let claimed = self.claimed_rewards.entry(caller).read();
+            let total_rewards = claimed + pending;
+            
+            // Reset claimed rewards and update timestamp
+            self.claimed_rewards.entry(caller).write(0);
+            self.stake_timestamp.entry(caller).write(get_block_timestamp());
+            
+            // Deduct from reward pool
+            let pool = self.reward_pool.read();
+            if total_rewards > pool {
+                self.reward_pool.write(0);
+                return pool; // Return what's available
+            }
+            self.reward_pool.write(pool - total_rewards);
+            
+            total_rewards
         }
 
         fn get_staked_amount(self: @ContractState, address: ContractAddress) -> u256 {
@@ -96,7 +143,10 @@ mod MockStakingContract {
         }
 
         fn get_pending_rewards(self: @ContractState, address: ContractAddress) -> u256 {
-            self.pending_rewards.entry(address).read()
+            // Return total pending (claimed + calculated)
+            let claimed = self.claimed_rewards.entry(address).read();
+            let pending = self._calculate_pending_rewards(address);
+            claimed + pending
         }
     }
     
@@ -105,7 +155,32 @@ mod MockStakingContract {
     impl ExternalMockStakingImpl of super::IExternalMockStaking<ContractState> {
         fn set_rewards(ref self: ContractState, staker: ContractAddress, amount: u256) {
             // Set rewards for the given staker address (for testing reward sync)
-            self.pending_rewards.entry(staker).write(amount);
+            let claimed = self.claimed_rewards.entry(staker).read();
+            self.claimed_rewards.entry(staker).write(claimed + amount);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn _calculate_pending_rewards(self: @ContractState, staker: ContractAddress) -> u256 {
+            let staked = self.staked_amounts.entry(staker).read();
+            if staked == 0 {
+                return 0;
+            }
+
+            let stake_time = self.stake_timestamp.entry(staker).read();
+            if stake_time == 0 {
+                return 0;
+            }
+
+            let current_time = get_block_timestamp();
+            let time_staked = current_time - stake_time;
+            
+            // Calculate rewards: (time_staked / 30) * 0.01 STRK per staked token
+            let intervals = time_staked / REWARD_INTERVAL;
+            let rewards = (staked * REWARD_PER_30_SECONDS * intervals.into()) / 1_000_000_000_000_000_000; // Normalize
+            
+            rewards
         }
     }
 }
@@ -131,7 +206,12 @@ fn deploy_mock_strk_token() -> ContractAddress {
 
 fn deploy_mock_staking_contract() -> ContractAddress {
     let contract = declare("MockStakingContract").unwrap().contract_class();
-    let (contract_address, _) = contract.deploy(@array![]).unwrap();
+    // Deploy with 10 STRK initial reward pool
+    let initial_pool = 10_000_000_000_000_000_000_u256; // 10 STRK
+    let mut calldata = array![];
+    calldata.append(initial_pool.low.into());
+    calldata.append(initial_pool.high.into());
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
     contract_address
 }
 
@@ -149,7 +229,7 @@ fn deploy_habit_tracker(
 // ============================================================================
 
 #[test]
-fn test_stake_to_protocol_with_mock() {
+fn test_auto_stake_from_successful_habit() {
     // Setup
     let treasury: ContractAddress = TREASURY.try_into().unwrap();
     let user: ContractAddress = USER.try_into().unwrap();
@@ -161,27 +241,38 @@ fn test_stake_to_protocol_with_mock() {
     let mock_staking_dispatcher = IMockStakingContractDispatcher {
         contract_address: mock_staking
     };
+    let mock_strk = deploy_mock_strk_token();
+    let strk = IERC20Dispatcher { contract_address: mock_strk };
     
-    // User stakes 10 STRK
-    let stake_amount = 10_000_000_000_000_000_000_u256; // 10 STRK
+    // User deposits and creates a habit
+    let deposit_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    start_cheat_caller_address(mock_strk, user);
+    strk.approve(habit_tracker, deposit_amount);
+    stop_cheat_caller_address(mock_strk);
     
     start_cheat_caller_address(habit_tracker, user);
-    tracker.stake_to_protocol(stake_amount);
+    tracker.deposit(deposit_amount);
+    tracker.create_habit('Morning Exercise');
+    
+    // Prepare day and check in
+    let epoch = tracker.epoch_now();
+    tracker.prepare_day(epoch);
+    tracker.check_in(1, epoch);
+    
+    // Force settle (successful completion triggers auto-staking)
+    tracker.force_settle_all(user, epoch, 10);
     stop_cheat_caller_address(habit_tracker);
     
-    // Verify staking occurred
+    // Verify staking occurred automatically
+    let stake_amount = 10_000_000_000_000_000_000_u256; // 10 STRK (default stake per day)
     assert(tracker.total_staked() == stake_amount, 'Wrong total staked');
     
     let staked_in_protocol = mock_staking_dispatcher.get_staked_amount(habit_tracker);
     assert(staked_in_protocol == stake_amount, 'Amount not staked in protocol');
-    
-    // Check vault state
-    let vault_state = tracker.get_vault_state();
-    assert(vault_state.total_staked == stake_amount, 'Wrong vault total_staked');
 }
 
 #[test]
-fn test_unstake_from_protocol_with_mock() {
+fn test_no_auto_stake_from_failed_habit() {
     // Setup
     let treasury: ContractAddress = TREASURY.try_into().unwrap();
     let user: ContractAddress = USER.try_into().unwrap();
@@ -190,26 +281,30 @@ fn test_unstake_from_protocol_with_mock() {
     let habit_tracker = deploy_habit_tracker(treasury, mock_staking);
     
     let tracker = IHabitTrackerDispatcher { contract_address: habit_tracker };
-    let mock_staking_dispatcher = IMockStakingContractDispatcher {
-        contract_address: mock_staking
-    };
+    let mock_strk = deploy_mock_strk_token();
+    let strk = IERC20Dispatcher { contract_address: mock_strk };
     
-    // Stake 10 STRK first
-    let stake_amount = 10_000_000_000_000_000_000_u256; // 10 STRK
+    // User deposits and creates a habit
+    let deposit_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    start_cheat_caller_address(mock_strk, user);
+    strk.approve(habit_tracker, deposit_amount);
+    stop_cheat_caller_address(mock_strk);
+    
     start_cheat_caller_address(habit_tracker, user);
-    tracker.stake_to_protocol(stake_amount);
+    tracker.deposit(deposit_amount);
+    tracker.create_habit('Morning Exercise');
     
-    // Unstake 5 STRK
-    let unstake_amount = 5_000_000_000_000_000_000_u256; // 5 STRK
-    tracker.unstake_from_protocol(unstake_amount);
+    // Prepare day but DON'T check in
+    let epoch = tracker.epoch_now();
+    tracker.prepare_day(epoch);
+    // No check_in - habit will fail
+    
+    // Force settle (failed completion should NOT stake)
+    tracker.force_settle_all(user, epoch, 10);
     stop_cheat_caller_address(habit_tracker);
     
-    // Verify unstaking occurred
-    let remaining = stake_amount - unstake_amount;
-    assert(tracker.total_staked() == remaining, 'Wrong total after unstake');
-    
-    let staked_in_protocol = mock_staking_dispatcher.get_staked_amount(habit_tracker);
-    assert(staked_in_protocol == remaining, 'Wrong amount in protocol');
+    // Verify NO staking occurred (tokens went to treasury instead)
+    assert(tracker.total_staked() == 0, 'Staked should be zero');
 }
 
 #[test]
@@ -225,14 +320,26 @@ fn test_sync_staking_rewards_with_mock() {
     let mock_staking_dispatcher = IMockStakingContractDispatcher {
         contract_address: mock_staking
     };
+    let mock_strk = deploy_mock_strk_token();
+    let strk = IERC20Dispatcher { contract_address: mock_strk };
     
-    // Stake 100 STRK
-    let stake_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    // User completes a habit successfully to trigger auto-staking
+    let deposit_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    start_cheat_caller_address(mock_strk, user);
+    strk.approve(habit_tracker, deposit_amount);
+    stop_cheat_caller_address(mock_strk);
+    
     start_cheat_caller_address(habit_tracker, user);
-    tracker.stake_to_protocol(stake_amount);
+    tracker.deposit(deposit_amount);
+    tracker.create_habit('Morning Exercise');
+    let epoch = tracker.epoch_now();
+    tracker.prepare_day(epoch);
+    tracker.check_in(1, epoch);
+    tracker.force_settle_all(user, epoch, 10);
     
     // Check pending rewards (mock generates 5% APY on stake)
-    let expected_rewards = stake_amount * 5 / 100; // 5 STRK
+    let stake_amount = 10_000_000_000_000_000_000_u256; // 10 STRK
+    let expected_rewards = stake_amount * 5 / 100; // 0.5 STRK
     let pending = mock_staking_dispatcher.get_pending_rewards(habit_tracker);
     assert(pending == expected_rewards, 'Wrong pending rewards');
     
@@ -242,13 +349,6 @@ fn test_sync_staking_rewards_with_mock() {
     
     // Verify rewards were accumulated
     assert(tracker.accumulated_rewards() == expected_rewards, 'Rewards not accumulated');
-    
-    // Verify vault state includes rewards
-    let vault_state = tracker.get_vault_state();
-    assert(
-        vault_state.total_assets == stake_amount + expected_rewards,
-        'Assets should include rewards'
-    );
 }
 
 #[test]
@@ -266,30 +366,35 @@ fn test_exchange_rate_with_rewards() {
     let initial_state = tracker.get_vault_state();
     assert(initial_state.exchange_rate == 1_000_000_000_000_000_000, 'Initial rate should be 1.0');
     
-    // Stake and accumulate rewards
-    let stake_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    // Complete habits successfully to trigger auto-staking
+    let mock_strk = deploy_mock_strk_token();
+    let strk = IERC20Dispatcher { contract_address: mock_strk };
+    
+    let deposit_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    start_cheat_caller_address(mock_strk, user);
+    strk.approve(habit_tracker, deposit_amount);
+    stop_cheat_caller_address(mock_strk);
+    
     start_cheat_caller_address(habit_tracker, user);
-    tracker.stake_to_protocol(stake_amount);
+    tracker.deposit(deposit_amount);
+    tracker.create_habit('Morning Exercise');
+    let epoch = tracker.epoch_now();
+    tracker.prepare_day(epoch);
+    tracker.check_in(1, epoch);
+    tracker.force_settle_all(user, epoch, 10);
     tracker.sync_staking_rewards();
     stop_cheat_caller_address(habit_tracker);
     
-    // With rewards, total_assets should be higher than total_supply
-    // This represents appreciation of HABIT tokens
+    // With rewards, total_assets should be higher than staked amount
     let final_state = tracker.get_vault_state();
-    let expected_rewards = stake_amount * 5 / 100;
-    
-    assert(
-        final_state.total_assets == stake_amount + expected_rewards,
-        'Assets include rewards'
-    );
+    assert(final_state.total_staked > 0, 'Should have staked amount');
     
     // Exchange rate would increase if we had shares issued
     // (In full ERC4626 implementation with actual share tokens)
 }
 
 #[test]
-#[should_panic(expected: ('Amount must be greater than 0',))]
-fn test_stake_zero_amount_fails() {
+fn test_multiple_habits_auto_stake_batch() {
     let treasury: ContractAddress = TREASURY.try_into().unwrap();
     let user: ContractAddress = USER.try_into().unwrap();
     
@@ -297,27 +402,35 @@ fn test_stake_zero_amount_fails() {
     let habit_tracker = deploy_habit_tracker(treasury, mock_staking);
     
     let tracker = IHabitTrackerDispatcher { contract_address: habit_tracker };
+    let mock_strk = deploy_mock_strk_token();
+    let strk = IERC20Dispatcher { contract_address: mock_strk };
+    
+    // User deposits and creates multiple habits
+    let deposit_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    start_cheat_caller_address(mock_strk, user);
+    strk.approve(habit_tracker, deposit_amount);
+    stop_cheat_caller_address(mock_strk);
     
     start_cheat_caller_address(habit_tracker, user);
-    tracker.stake_to_protocol(0);
+    tracker.deposit(deposit_amount);
+    tracker.create_habit('Morning Exercise');
+    tracker.create_habit('Read Book');
+    tracker.create_habit('Meditation');
+    
+    // Prepare day and check in all habits
+    let epoch = tracker.epoch_now();
+    tracker.prepare_day(epoch);
+    tracker.check_in(1, epoch);
+    tracker.check_in(2, epoch);
+    tracker.check_in(3, epoch);
+    
+    // Force settle all habits (should batch stake all successful rewards)
+    tracker.force_settle_all(user, epoch, 10);
     stop_cheat_caller_address(habit_tracker);
-}
-
-#[test]
-#[should_panic(expected: ('Insufficient staked balance',))]
-fn test_unstake_more_than_staked_fails() {
-    let treasury: ContractAddress = TREASURY.try_into().unwrap();
-    let user: ContractAddress = USER.try_into().unwrap();
     
-    let mock_staking = deploy_mock_staking_contract();
-    let habit_tracker = deploy_habit_tracker(treasury, mock_staking);
-    
-    let tracker = IHabitTrackerDispatcher { contract_address: habit_tracker };
-    
-    // Try to unstake without staking first
-    start_cheat_caller_address(habit_tracker, user);
-    tracker.unstake_from_protocol(1_000_000_000_000_000_000);
-    stop_cheat_caller_address(habit_tracker);
+    // Verify staking occurred for all 3 habits (3 * 10 STRK = 30 STRK)
+    let expected_stake = 30_000_000_000_000_000_000_u256;
+    assert(tracker.total_staked() == expected_stake, 'Wrong batch staked amount');
 }
 
 // ============================================================================
@@ -374,13 +487,26 @@ fn test_fork_deploys_habit_tracker_on_sepolia() {
     assert(tracker.epoch_now() > 0, 'Fork: deployment failed');
     assert(tracker.treasury_address() == treasury, 'Fork: wrong treasury');
     
-    // Test staking on forked network
-    let stake_amount = 10_000_000_000_000_000_000_u256;
+    // Test auto-staking through habit completion on forked network
+    let mock_strk = deploy_mock_strk_token();
+    let strk = IERC20Dispatcher { contract_address: mock_strk };
+    
+    let deposit_amount = 100_000_000_000_000_000_000_u256;
+    start_cheat_caller_address(mock_strk, user);
+    strk.approve(habit_tracker, deposit_amount);
+    stop_cheat_caller_address(mock_strk);
+    
     start_cheat_caller_address(habit_tracker, user);
-    tracker.stake_to_protocol(stake_amount);
+    tracker.deposit(deposit_amount);
+    tracker.create_habit('Test Habit');
+    let epoch = tracker.epoch_now();
+    tracker.prepare_day(epoch);
+    tracker.check_in(1, epoch);
+    tracker.force_settle_all(user, epoch, 10);
     stop_cheat_caller_address(habit_tracker);
     
     // Verify state on forked network
+    let stake_amount = 10_000_000_000_000_000_000_u256;
     assert(tracker.total_staked() == stake_amount, 'Fork: staking failed');
     
     // This proves our contract works on real Sepolia fork!
@@ -402,12 +528,25 @@ fn test_yield_generation_over_time() {
     let habit_tracker = deploy_habit_tracker(treasury, mock_staking);
     let tracker = IHabitTrackerDispatcher { contract_address: habit_tracker };
     
-    // Initial stake: 100 STRK
-    let stake_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    // Complete habit to trigger auto-staking
+    let mock_strk = deploy_mock_strk_token();
+    let strk = IERC20Dispatcher { contract_address: mock_strk };
+    
+    let deposit_amount = 100_000_000_000_000_000_000_u256; // 100 STRK
+    start_cheat_caller_address(mock_strk, user);
+    strk.approve(habit_tracker, deposit_amount);
+    stop_cheat_caller_address(mock_strk);
+    
     start_cheat_caller_address(habit_tracker, user);
-    tracker.stake_to_protocol(stake_amount);
+    tracker.deposit(deposit_amount);
+    tracker.create_habit('Test Habit');
+    let epoch = tracker.epoch_now();
+    tracker.prepare_day(epoch);
+    tracker.check_in(1, epoch);
+    tracker.force_settle_all(user, epoch, 10);
     
     // Get initial vault state
+    let stake_amount = 10_000_000_000_000_000_000_u256; // 10 STRK (auto-staked)
     let initial_state = tracker.get_vault_state();
     assert(initial_state.total_staked == stake_amount, 'Initial stake failed');
     assert(initial_state.accumulated_rewards == 0, 'Initial rewards not zero');

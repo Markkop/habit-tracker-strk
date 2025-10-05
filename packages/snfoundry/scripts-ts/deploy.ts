@@ -45,13 +45,21 @@ import { green } from "./helpers/colorize-log";
  * @returns {Promise<void>}
  */
 const deployScript = async (): Promise<void> => {
-  // Deploy HabitTracker contract with treasury address (using deployer as treasury)
+  // Deploy both contracts - MockStaking first, then HabitTracker
+  // MockStaking gets deployed with no constructor args
+  await deployContract({
+    contract: "MockStaking",
+    contractName: "MockStaking",
+  });
+
+  // HabitTracker gets deployed with deployer as treasury and dummy staking address
+  // We'll update it manually after if needed
   await deployContract({
     contract: "HabitTracker",
     contractName: "HabitTracker",
     constructorArgs: {
-      treasury_addr: deployer.address, // Using deployer as treasury for now
-      staking_contract_addr: "0x1", // Using dummy address for now (staking will skip if contract doesn't exist)
+      treasury_addr: deployer.address, // Using deployer as treasury
+      staking_contract_addr: "0x1", // Using dummy for now - update manually if testing staking
     },
   });
 };
@@ -63,7 +71,7 @@ const main = async (): Promise<void> => {
     await Promise.all([assertRpcNetworkActive(), assertDeployerSignable()]);
 
     await deployScript();
-    await executeDeployCalls();
+    await executeDeployCalls(); // Execute both deployments
     exportDeployments();
 
     console.log(green("All Setup Done!"));

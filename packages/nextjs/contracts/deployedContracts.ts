@@ -5,9 +5,130 @@
 
 const deployedContracts = {
   devnet: {
+    MockStaking: {
+      address:
+        "0x8cdae3ed1e2a235b90109fda1f3325e06447fab796f00105814e9fd5320dd0",
+      abi: [
+        {
+          type: "impl",
+          name: "MockStakingImpl",
+          interface_name: "contracts::mock_staking::IMockStaking",
+        },
+        {
+          type: "struct",
+          name: "core::integer::u256",
+          members: [
+            {
+              name: "low",
+              type: "core::integer::u128",
+            },
+            {
+              name: "high",
+              type: "core::integer::u128",
+            },
+          ],
+        },
+        {
+          type: "interface",
+          name: "contracts::mock_staking::IMockStaking",
+          items: [
+            {
+              type: "function",
+              name: "stake",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+                {
+                  name: "staker_address",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "unstake",
+              inputs: [
+                {
+                  name: "amount",
+                  type: "core::integer::u256",
+                },
+              ],
+              outputs: [],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "claim_rewards",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "external",
+            },
+            {
+              type: "function",
+              name: "get_staked_amount",
+              inputs: [
+                {
+                  name: "address",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+              ],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "get_pending_rewards",
+              inputs: [
+                {
+                  name: "address",
+                  type: "core::starknet::contract_address::ContractAddress",
+                },
+              ],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "get_reward_pool",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+          ],
+        },
+        {
+          type: "event",
+          name: "contracts::mock_staking::MockStaking::Event",
+          kind: "enum",
+          variants: [],
+        },
+      ],
+      classHash:
+        "0x148fc8b24b45c2df26ac7e21c812c42b5e27b45a88fe862ef3b55fc7bd9c536",
+    },
     HabitTracker: {
       address:
-        "0x48182f0c82a62180dc348614e62d2ca4e3ddb7a977a2f5fe0a9f81a051f3953",
+        "0x4fab5f136b84d166e8b8171e7a8d7ed5d7c6e271294618f11a3bfec72f74ad5",
       abi: [
         {
           type: "impl",
@@ -311,30 +432,6 @@ const deployedContracts = {
             },
             {
               type: "function",
-              name: "stake_to_protocol",
-              inputs: [
-                {
-                  name: "amount",
-                  type: "core::integer::u256",
-                },
-              ],
-              outputs: [],
-              state_mutability: "external",
-            },
-            {
-              type: "function",
-              name: "unstake_from_protocol",
-              inputs: [
-                {
-                  name: "amount",
-                  type: "core::integer::u256",
-                },
-              ],
-              outputs: [],
-              state_mutability: "external",
-            },
-            {
-              type: "function",
               name: "get_user_state",
               inputs: [
                 {
@@ -451,6 +548,17 @@ const deployedContracts = {
               outputs: [
                 {
                   type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "staking_contract",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::starknet::contract_address::ContractAddress",
                 },
               ],
               state_mutability: "view",
@@ -811,7 +919,7 @@ const deployedContracts = {
         },
       ],
       classHash:
-        "0x6baf1b90947d225afd01fa7d285a573d47bae566705f8f165aa0dd184cd6ce1",
+        "0x6a9cb8339935e835f4762907999264975f1d18d8c8cf2a3b6c22759a7d8ef12",
     },
   },
   sepolia: {
@@ -1121,30 +1229,6 @@ const deployedContracts = {
             },
             {
               type: "function",
-              name: "stake_to_protocol",
-              inputs: [
-                {
-                  name: "amount",
-                  type: "core::integer::u256",
-                },
-              ],
-              outputs: [],
-              state_mutability: "external",
-            },
-            {
-              type: "function",
-              name: "unstake_from_protocol",
-              inputs: [
-                {
-                  name: "amount",
-                  type: "core::integer::u256",
-                },
-              ],
-              outputs: [],
-              state_mutability: "external",
-            },
-            {
-              type: "function",
               name: "get_user_state",
               inputs: [
                 {
@@ -1261,6 +1345,17 @@ const deployedContracts = {
               outputs: [
                 {
                   type: "core::integer::u256",
+                },
+              ],
+              state_mutability: "view",
+            },
+            {
+              type: "function",
+              name: "staking_contract",
+              inputs: [],
+              outputs: [
+                {
+                  type: "core::starknet::contract_address::ContractAddress",
                 },
               ],
               state_mutability: "view",
